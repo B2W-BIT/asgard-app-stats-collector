@@ -1,0 +1,18 @@
+[[source]]
+verify_ssl = true
+url = "https://pypi.org/simple"
+name = "pypi"
+
+[packages]
+async-worker = "==0.2.0rc1"
+pytest = "*"
+aiohttp = "==3.3.2"
+
+[requires]
+python_version = "3.6"
+
+[dev-packages]
+pytest = "*"
+pytest-coverage = "*"
+asynctest = "*"
+aioresponses = "*"

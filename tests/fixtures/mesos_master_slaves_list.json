@@ -1,0 +1,43 @@
+{
+  "slaves": [
+    {
+      "id": "90ba2028-fed0-4f19-a2b1-cb35baf9b2cd-S0",
+      "hostname": "10.0.111.32",
+      "port": 5051,
+      "attributes": {
+        "dc": "bit",
+        "owner": "sieve",
+        "mesos": "slave",
+        "workload": "general"
+      },
+      "pid": "slave(1)@10.168.200.94:5051",
+      "registered_time": 1528216448.5751
+    },
+    {
+      "id": "90ba2028-fed0-4f19-a2b1-cb35baf9b2cd-S0",
+      "hostname": "10.0.111.33",
+      "port": 5051,
+      "attributes": {
+        "dc": "bit",
+        "owner": "sieve",
+        "mesos": "slave",
+        "workload": "general"
+      },
+      "pid": "slave(1)@10.168.200.94:5051",
+      "registered_time": 1528216448.5751
+    },
+    {
+      "id": "90ba2028-fed0-4f19-a2b1-cb35baf9b2cd-S0",
+      "hostname": "10.0.111.34",
+      "port": 5051,
+      "attributes": {
+        "dc": "bit",
+        "owner": "sieve",
+        "mesos": "slave",
+        "workload": "general"
+      },
+      "pid": "slave(1)@10.168.200.94:5051",
+      "registered_time": 1528216448.5751
+    }
+  ]
+}
