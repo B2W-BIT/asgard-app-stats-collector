@@ -1,5 +1,6 @@
 import asynctest
 from status_collector import get_slave_ip
+from status_collector import sorted_ips
 from aioresponses import aioresponses
 
 slaves = {
@@ -49,7 +50,8 @@ slaves = {
 
 class FecthMasterTest(asynctest.TestCase):  
     async def test_get_slaves_ips_list(self):
-        with aioresponses() as m:
-            m.get('http://10.168.200.96:5050/slaves', payload=slaves)
-            slave_ips = await get_slave_ip("10.0.111.43")
-            self.assertEquals(slave_ips, ["10.0.111.32:5051", "10.0.111.33:5051", "10.0.111.34:5051"])
+        # with aioresponses() as m:
+        #     m.get('http://10.168.200.96:5050/slaves', payload=slaves)
+        slave_ips = await get_slave_ip("10.168.200.96")
+        slave_ips = sorted_ips(slave_ips)
+        self.assertEquals(slave_ips, ["10.168.200.92", "10.168.200.93", "10.168.200.94", "10.168.200.95", "10.168.200.96", "10.168.200.97", "10.168.200.98"])
