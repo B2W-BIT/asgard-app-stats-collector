@@ -1,28 +1,71 @@
 import aiohttp
 import asyncio
-import socket as sock
+from easyqueue.async import AsyncQueue, AsyncQueueConsumerDelegate
 
-def sorted_ips(raw_ips):
-    ips = [sock.inet_pton(sock.AF_INET, ip) for ip in raw_ips]
-    ips.sort()
-    return [sock.inet_ntop(sock.AF_INET, ip) for ip in ips]
 
-async def get_slave_ip(master_ip):
+async def get_slave_ip_list(master_ip):
     session = aiohttp.ClientSession()
     resp = await session.get(f'http://{master_ip}:5050/slaves')
     data = await resp.json()
     result = []
     for slave in data["slaves"]:
-        result.append(slave["hostname"])
+        result.append(f'{slave["hostname"]}:{slave["port"]}')
     await session.close()
     return result
 
 
+async def get_slave_statistics(slave_ip):
+    session = aiohttp.ClientSession()
+    try:
+        resp = await session.get(f'http://{slave_ip}/monitor/statistics.json')
+        data = await resp.json()
+        if data[0]["statistics"].get("cpus_throttled_time_secs") is not None:
+            app_name = data[0]["executor_id"].split('.')[0]
+            app_name = app_name.replace("_", "/")
+            app_name = "/" + app_name
+            task_name = data[0]["executor_id"]
+            cpu_system_time = data[0]["statistics"]["cpus_system_time_secs"]
+            cpu_user_time = data[0]["statistics"]["cpus_user_time_secs"]
+            cpu_throttled_time = data[0]["statistics"][
+                "cpus_throttled_time_secs"]
+            cpu_throttled_time_percentage = (cpu_throttled_time * 100) / (
+                cpu_system_time + cpu_user_time)
+            mem_limit = data[0]["statistics"]["mem_limit_bytes"]
+            mem_rss = data[0]["statistics"]["mem_rss_bytes"]
+            mem_usage_percentage = (mem_rss * 100) / mem_limit
+            result = {
+                "app_name": app_name,
+                "task_name": task_name,
+                "cpu_throttled_percentage": cpu_throttled_time_percentage,
+                "memory_usage_percentage": mem_usage_percentage,
+                **data[0]["statistics"]
+            }
+        else:
+            app_name = data[0]["executor_id"].split('.')[0]
+            app_name = app_name.replace("_", "/")
+            app_name = "/" + app_name
+            task_name = data[0]["executor_id"]
+            mem_limit = data[0]["statistics"]["mem_limit_bytes"]
+            mem_rss = data[0]["statistics"]["mem_rss_bytes"]
+            mem_usage_percentage = (mem_rss * 100) / mem_limit
+            result = {
+                "app_name": app_name,
+                "task_name": task_name,
+                "memory_usage_percentage": mem_usage_percentage,
+                **data[0]["statistics"]
+            }
+        await session.close()
+        return result
+    except Exception:
+        await session.close()
+        raise Exception("Invalid slave ip.")
 
-async def main():
-    # ip_list = await get_slave_ip("10.168.200.96")
-    # ip_list = sorted_ips(ip_list)
-    # print (ip_list)
 
-if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
+# async def send_slave_statistics_to_queue(slave_statistics):
+#     consumer = MyConsumer()
+#     await consumer.put(self, slave_statistics, "teste.viniciusLouzada", '', 0)
+#     return True
+
+# async def main():
+# if __name__ == '__main__':
+#     asyncio.get_event_loop().run_until_complete(main())

@@ -1,0 +1,44 @@
+{
+  "slaves_statistics": [
+    {
+      "executor_id":
+        "sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
+      "executor_name":
+        "Command Executor (Task: sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430) (Command: NO EXECUTABLE)",
+      "framework_id": "27b52920-3899-4b90-a1d6-bf83a87f3612-0000",
+      "source":
+        "sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
+      "statistics": {
+        "cpus_limit": 8.25,
+        "cpus_nr_periods": 769021,
+        "cpus_nr_throttled": 1046,
+        "cpus_system_time_secs": 34501.45,
+        "cpus_throttled_time_secs": 352.597023453,
+        "cpus_user_time_secs": 96348.84,
+        "mem_anon_bytes": 4845449216,
+        "mem_file_bytes": 260165632,
+        "mem_limit_bytes": 7650410496,
+        "mem_mapped_file_bytes": 7159808,
+        "mem_rss_bytes": 5105614848,
+        "timestamp": 1388534400.0
+      }
+    },
+    {
+      "executor_id":
+        "sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
+      "executor_name":
+        "Command Executor (Task: sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430) (Command: NO EXECUTABLE)",
+      "framework_id": "27b52920-3899-4b90-a1d6-bf83a87f3612-0000",
+      "source":
+        "sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
+      "statistics": {
+        "cpus_limit": 8.25,
+        "cpus_system_time_secs": 34501.45,
+        "cpus_user_time_secs": 96348.84,
+        "mem_limit_bytes": 7650410496,
+        "mem_rss_bytes": 5105614848,
+        "timestamp": 1388534400.0
+      }
+    }
+  ]
+}
