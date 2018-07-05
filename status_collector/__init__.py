@@ -34,7 +34,7 @@ async def get_slave_statistics(slave_ip):
             mem_rss = data[0]["statistics"]["mem_rss_bytes"]
             mem_usage_percentage = (mem_rss * 100) / mem_limit
             result = {
-                "app_name": app_name,
+                "appname": app_name,
                 "task_name": task_name,
                 "cpu_throttled_percentage": cpu_throttled_time_percentage,
                 "memory_usage_percentage": mem_usage_percentage,
@@ -49,7 +49,7 @@ async def get_slave_statistics(slave_ip):
             mem_rss = data[0]["statistics"]["mem_rss_bytes"]
             mem_usage_percentage = (mem_rss * 100) / mem_limit
             result = {
-                "app_name": app_name,
+                "appname": app_name,
                 "task_name": task_name,
                 "memory_usage_percentage": mem_usage_percentage,
                 **data[0]["statistics"]
@@ -61,11 +61,29 @@ async def get_slave_statistics(slave_ip):
         raise Exception("Invalid slave ip.")
 
 
-# async def send_slave_statistics_to_queue(slave_statistics):
-#     consumer = MyConsumer()
-#     await consumer.put(self, slave_statistics, "teste.viniciusLouzada", '', 0)
-#     return True
+async def send_slave_statistics_to_queue(slave_statistics, queue):
+    await queue.connect()
+    await queue.put(body=slave_statistics, routing_key="teste.viniciusLouzada")
+
+
+class Test(AsyncQueueConsumerDelegate):
+    @property
+    def queue_name(self) -> str:
+        return "nothing"
+
+    async def on_queue_message(self, content, delivery_tag, queue):
+        pass
+
 
 # async def main():
+#     Queue = AsyncQueue(
+#         "10.168.200.96",
+#         "viniciuslouzada",
+#         "4RXzFb6fZ0s1E16o",
+#         delegate=Test())
+#     await Queue.connect()
+#     await Queue.put(
+#         body={"teste": "teste"}, routing_key="teste.viniciusLouzada")
+
 # if __name__ == '__main__':
 #     asyncio.get_event_loop().run_until_complete(main())

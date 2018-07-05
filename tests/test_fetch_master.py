@@ -105,7 +105,7 @@ class FecthMasterTest(asynctest.TestCase):
                 payload=slave_statistics_response_mock)
             slave_statistics = await get_slave_statistics("10.0.111.32:5051")
             expected_result = {
-                "app_name":
+                "appname":
                 "/sieve/captura/kirby/powerup",
                 "task_name":
                 "sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
@@ -147,7 +147,7 @@ class FecthMasterTest(asynctest.TestCase):
                 payload=slave_statistics_response_mock_without_all_fields)
             slave_statistics = await get_slave_statistics("10.0.111.32:5051")
             expected_result = {
-                "app_name":
+                "appname":
                 "/sieve/captura/kirby/powerup",
                 "task_name":
                 "sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
@@ -179,9 +179,16 @@ class FecthMasterTest(asynctest.TestCase):
 
     async def test_putting_slave_statistics_on_rabbitMQ(self):
         with aioresponses() as m:
-          m.get('http://10.11.43.96:5050/slaves', payload=slaves)
-          slave_ips = await get_slave_ip_list("10.11.43.96")
-          m.get(f'http://{slave_ips[0]}/monitor/statistics.json',payload=slave_statistics_response_mock)
-          slave_statistics = await get_slave_statistics(slave_ips[0])
-          result = await send_slave_statistics_to_queue(slave_statistics)
-        self.assertEquals(result, True)
+            m.get('http://10.11.43.96:5050/slaves', payload=slaves)
+            slave_ips = await get_slave_ip_list("10.11.43.96")
+            m.get(
+                f'http://{slave_ips[0]}/monitor/statistics.json',
+                payload=slave_statistics_response_mock)
+            slave_statistics = await get_slave_statistics(slave_ips[0])
+            queue = asynctest.mock.CoroutineMock(
+                put=asynctest.mock.CoroutineMock(),
+                connect=asynctest.mock.CoroutineMock())
+            await send_slave_statistics_to_queue(slave_statistics, queue)
+        self.assertEquals(
+            [asynctest.mock.call(body=slave_statistics, routing_key="teste.viniciusLouzada")],
+            queue.put.await_args_list)
