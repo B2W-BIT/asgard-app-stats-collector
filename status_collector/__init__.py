@@ -15,45 +15,49 @@ async def get_slave_ip_list(master_ip):
 
 
 async def get_slave_statistics(slave_ip):
-    session = aiohttp.ClientSession()
     try:
+        session = aiohttp.ClientSession()
+        result = []
         resp = await session.get(f'http://{slave_ip}/monitor/statistics.json')
         data = await resp.json()
-        if data[0]["statistics"].get("cpus_throttled_time_secs") is not None:
-            app_name = data[0]["executor_id"].split('.')[0]
-            app_name = app_name.replace("_", "/")
-            app_name = "/" + app_name
-            task_name = data[0]["executor_id"]
-            cpu_system_time = data[0]["statistics"]["cpus_system_time_secs"]
-            cpu_user_time = data[0]["statistics"]["cpus_user_time_secs"]
-            cpu_throttled_time = data[0]["statistics"][
-                "cpus_throttled_time_secs"]
-            cpu_throttled_time_percentage = (cpu_throttled_time * 100) / (
-                cpu_system_time + cpu_user_time)
-            mem_limit = data[0]["statistics"]["mem_limit_bytes"]
-            mem_rss = data[0]["statistics"]["mem_rss_bytes"]
-            mem_usage_percentage = (mem_rss * 100) / mem_limit
-            result = {
-                "appname": app_name,
-                "task_name": task_name,
-                "cpu_throttled_percentage": cpu_throttled_time_percentage,
-                "memory_usage_percentage": mem_usage_percentage,
-                **data[0]["statistics"]
-            }
-        else:
-            app_name = data[0]["executor_id"].split('.')[0]
-            app_name = app_name.replace("_", "/")
-            app_name = "/" + app_name
-            task_name = data[0]["executor_id"]
-            mem_limit = data[0]["statistics"]["mem_limit_bytes"]
-            mem_rss = data[0]["statistics"]["mem_rss_bytes"]
-            mem_usage_percentage = (mem_rss * 100) / mem_limit
-            result = {
-                "appname": app_name,
-                "task_name": task_name,
-                "memory_usage_percentage": mem_usage_percentage,
-                **data[0]["statistics"]
-            }
+        for val in data:
+            if val["statistics"].get("cpus_throttled_time_secs") is not None:
+                app_name = val["executor_id"].split('.')[0]
+                app_name = app_name.replace("_", "/")
+                app_name = "/" + app_name
+                task_name = val["executor_id"]
+                cpu_system_time = val["statistics"]["cpus_system_time_secs"]
+                cpu_user_time = val["statistics"]["cpus_user_time_secs"]
+                cpu_throttled_time = val["statistics"][
+                    "cpus_throttled_time_secs"]
+                cpu_throttled_time_percentage = (cpu_throttled_time * 100) / (
+                    cpu_system_time + cpu_user_time)
+                mem_limit = val["statistics"]["mem_limit_bytes"]
+                mem_rss = val["statistics"]["mem_rss_bytes"]
+                mem_usage_percentage = (mem_rss * 100) / mem_limit
+                statistics = {
+                    "appname": app_name,
+                    "task_name": task_name,
+                    "cpu_throttled_percentage": cpu_throttled_time_percentage,
+                    "memory_usage_percentage": mem_usage_percentage,
+                    **val["statistics"]
+                }
+                result.append(statistics)
+            else:
+                app_name = val["executor_id"].split('.')[0]
+                app_name = app_name.replace("_", "/")
+                app_name = "/" + app_name
+                task_name = val["executor_id"]
+                mem_limit = val["statistics"]["mem_limit_bytes"]
+                mem_rss = val["statistics"]["mem_rss_bytes"]
+                mem_usage_percentage = (mem_rss * 100) / mem_limit
+                statistics = {
+                    "appname": app_name,
+                    "task_name": task_name,
+                    "memory_usage_percentage": mem_usage_percentage,
+                    **val["statistics"]
+                }
+                result.append(statistics)
         await session.close()
         return result
     except Exception:
@@ -63,7 +67,8 @@ async def get_slave_statistics(slave_ip):
 
 async def send_slave_statistics_to_queue(slave_statistics, queue):
     await queue.connect()
-    await queue.put(body=slave_statistics, routing_key="teste.viniciusLouzada")
+    for task in slave_statistics:
+        await queue.put(body=task, routing_key="teste.viniciusLouzada")
 
 
 class Test(AsyncQueueConsumerDelegate):
@@ -75,15 +80,17 @@ class Test(AsyncQueueConsumerDelegate):
         pass
 
 
-# async def main():
-#     Queue = AsyncQueue(
-#         "10.168.200.96",
-#         "viniciuslouzada",
-#         "4RXzFb6fZ0s1E16o",
-#         delegate=Test())
-#     await Queue.connect()
-#     await Queue.put(
-#         body={"teste": "teste"}, routing_key="teste.viniciusLouzada")
+async def main():
+    queue = AsyncQueue(
+        "10.168.200.96",
+        "viniciuslouzada",
+        "4RXzFb6fZ0s1E16o",
+        delegate=Test())
+    ip_list = await get_slave_ip_list("10.168.200.96")
+    for ip in ip_list:
+        statistics = await get_slave_statistics(ip)
+        await send_slave_statistics_to_queue(statistics, queue)
 
-# if __name__ == '__main__':
-#     asyncio.get_event_loop().run_until_complete(main())
+
+if __name__ == '__main__':
+    asyncio.get_event_loop().run_until_complete(main())
