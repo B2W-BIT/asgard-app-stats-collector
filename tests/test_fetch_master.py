@@ -4,6 +4,7 @@ from status_collector import get_slave_statistics
 from status_collector import send_slave_statistics_to_queue
 from aioresponses import aioresponses
 from asynctest.mock import CoroutineMock
+from status_collector import conf
 
 slaves = {
     "slaves": [{
@@ -325,7 +326,8 @@ class FecthMasterTest(asynctest.TestCase):
                                                  self.loggerMock)
         self.assertEquals([
             asynctest.mock.call(
-                body=slave_statistics[0], routing_key="teste.viniciusLouzada")
+                body=slave_statistics[0],
+                routing_key=conf.STATUS_COLLECTOR_RABBITMQ_RK)
         ], queue.put.await_args_list)
 
     async def test_putting_slave_multiple_tasks_statistics_on_rabbitMQ(self):
@@ -345,7 +347,9 @@ class FecthMasterTest(asynctest.TestCase):
                                              self.loggerMock)
         self.assertEquals([
             asynctest.mock.call(
-                body=slave_statistics[0], routing_key="teste.viniciusLouzada"),
+                body=slave_statistics[0],
+                routing_key=conf.STATUS_COLLECTOR_RABBITMQ_RK),
             asynctest.mock.call(
-                body=slave_statistics[1], routing_key="teste.viniciusLouzada")
+                body=slave_statistics[1],
+                routing_key=conf.STATUS_COLLECTOR_RABBITMQ_RK)
         ], queue.put.await_args_list)

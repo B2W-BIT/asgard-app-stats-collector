@@ -3,6 +3,7 @@ from status_collector import conf
 from easyqueue.async import AsyncQueue
 from status_collector import Test, get_slave_ip_list, get_slave_statistics, send_slave_statistics_to_queue
 from aiologger.loggers.json import JsonLogger
+import time
 
 
 async def main():
@@ -17,8 +18,15 @@ async def main():
     await logger.debug({"totalSlaves": len(ip_list), "slaveList": ip_list})
     for ip in ip_list:
         try:
+            start = time.time()
             statistics = await get_slave_statistics(ip, logger)
-            await logger.debug({"slaveIp": ip, "totalTasks": len(statistics)})
+            end = time.time()
+            elapsed = end - start
+            await logger.debug({
+                "slaveIp": ip,
+                "totalTasks": len(statistics),
+                "processTime": elapsed
+            })
             await send_slave_statistics_to_queue(statistics, queue, logger)
         except Exception as e:
             await logger.exception(e)
