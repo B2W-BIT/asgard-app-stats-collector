@@ -1,7 +1,7 @@
 import aiohttp
-import asyncio
 from easyqueue.async import AsyncQueue, AsyncQueueConsumerDelegate
 from status_collector import conf
+from asyncworker import App
 
 
 async def get_slave_ip_list(master_ip):
@@ -80,19 +80,3 @@ class Test(AsyncQueueConsumerDelegate):
 
     async def on_queue_message(self, content, delivery_tag, queue):
         pass
-
-
-async def main():
-    queue = AsyncQueue(
-        conf.STATUS_COLLECTOR_RABBITMQ_HOST,
-        conf.STATUS_COLLECTOR_RABBITMQ_USER,
-        conf.STATUS_COLLECTOR_RABBITMQ_PWD,
-        delegate=Test())
-    ip_list = await get_slave_ip_list(conf.STATUS_COLLECTOR_RABBITMQ_HOST)
-    for ip in ip_list:
-        statistics = await get_slave_statistics(ip)
-        await send_slave_statistics_to_queue(statistics, queue)
-
-
-if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
