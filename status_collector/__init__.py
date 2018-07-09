@@ -22,42 +22,42 @@ async def get_slave_statistics(slave_ip, logger):
         result = []
         resp = await session.get(f'http://{slave_ip}/monitor/statistics.json')
         data = await resp.json()
-        for val in data:
-            if val["statistics"].get("cpus_throttled_time_secs") is not None:
-                app_name = val["executor_id"].split('.')[0]
+        for task in data:
+            if task["statistics"].get("cpus_throttled_time_secs") is not None:
+                app_name = task["executor_id"].split('.')[0]
                 app_name = app_name.replace("_", "/")
                 app_name = "/" + app_name
-                task_name = val["executor_id"]
-                cpu_system_time = val["statistics"]["cpus_system_time_secs"]
-                cpu_user_time = val["statistics"]["cpus_user_time_secs"]
-                cpu_throttled_time = val["statistics"][
+                task_name = task["executor_id"]
+                cpu_system_time = task["statistics"]["cpus_system_time_secs"]
+                cpu_user_time = task["statistics"]["cpus_user_time_secs"]
+                cpu_throttled_time = task["statistics"][
                     "cpus_throttled_time_secs"]
                 cpu_throttled_time_percentage = (cpu_throttled_time * 100) / (
                     cpu_system_time + cpu_user_time)
-                mem_limit = val["statistics"]["mem_limit_bytes"]
-                mem_rss = val["statistics"]["mem_rss_bytes"]
+                mem_limit = task["statistics"]["mem_limit_bytes"]
+                mem_rss = task["statistics"]["mem_rss_bytes"]
                 mem_usage_percentage = (mem_rss * 100) / mem_limit
                 statistics = {
                     "appname": app_name,
                     "task_name": task_name,
                     "cpu_throttled_percentage": cpu_throttled_time_percentage,
                     "memory_usage_percentage": mem_usage_percentage,
-                    **val["statistics"]
+                    **task["statistics"]
                 }
                 result.append(statistics)
             else:
-                app_name = val["executor_id"].split('.')[0]
+                app_name = task["executor_id"].split('.')[0]
                 app_name = app_name.replace("_", "/")
                 app_name = "/" + app_name
-                task_name = val["executor_id"]
-                mem_limit = val["statistics"]["mem_limit_bytes"]
-                mem_rss = val["statistics"]["mem_rss_bytes"]
+                task_name = task["executor_id"]
+                mem_limit = task["statistics"]["mem_limit_bytes"]
+                mem_rss = task["statistics"]["mem_rss_bytes"]
                 mem_usage_percentage = (mem_rss * 100) / mem_limit
                 statistics = {
                     "appname": app_name,
                     "task_name": task_name,
                     "memory_usage_percentage": mem_usage_percentage,
-                    **val["statistics"]
+                    **task["statistics"]
                 }
                 result.append(statistics)
         await session.close()
