@@ -18,10 +18,10 @@ async def main():
     for ip in ip_list:
         try:
             statistics = await get_slave_statistics(ip, logger)
-            await logger.debug({"totalTasks": len(statistics)})
+            await logger.debug({"slaveIp": ip, "totalTasks": len(statistics)})
             await send_slave_statistics_to_queue(statistics, queue, logger)
         except Exception as e:
-            logger.exception(e)
+            await logger.exception(e)
 
 
 asyncio.get_event_loop().run_until_complete(main())
