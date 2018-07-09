@@ -9,7 +9,8 @@ async def main():
         conf.STATUS_COLLECTOR_RABBITMQ_HOST,
         conf.STATUS_COLLECTOR_RABBITMQ_USER,
         conf.STATUS_COLLECTOR_RABBITMQ_PWD,
-        delegate=Test())
+        delegate=Test(),
+        virtual_host=conf.STATUS_COLLECTOR_VHOST)
     ip_list = await get_slave_ip_list(conf.STATUS_COLLECTOR_MESOS_MASTER_IP)
     for ip in ip_list:
         statistics = await get_slave_statistics(ip)
