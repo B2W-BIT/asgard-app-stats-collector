@@ -12,10 +12,11 @@ async def get_slave_ip_list(master_ip):
     for slave in data["slaves"]:
         result.append(f'{slave["hostname"]}:{slave["port"]}')
     await session.close()
+
     return result
 
 
-async def get_slave_statistics(slave_ip):
+async def get_slave_statistics(slave_ip, logger):
     try:
         session = aiohttp.ClientSession()
         result = []
@@ -66,7 +67,7 @@ async def get_slave_statistics(slave_ip):
         raise Exception("Invalid slave ip.")
 
 
-async def send_slave_statistics_to_queue(slave_statistics, queue):
+async def send_slave_statistics_to_queue(slave_statistics, queue, logger):
     await queue.connect()
     for task in slave_statistics:
         await queue.put(

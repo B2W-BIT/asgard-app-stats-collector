@@ -3,6 +3,7 @@ from status_collector import get_slave_ip_list
 from status_collector import get_slave_statistics
 from status_collector import send_slave_statistics_to_queue
 from aioresponses import aioresponses
+from asynctest.mock import CoroutineMock
 
 slaves = {
     "slaves": [{
@@ -138,6 +139,9 @@ slave_statistics_response_mock_multiple_tasks = [{
 
 
 class FecthMasterTest(asynctest.TestCase):
+    def setUp(self):
+        self.loggerMock = CoroutineMock(debug=CoroutineMock())
+
     async def test_get_slaves_ips_list(self):
         with aioresponses() as m:
             m.get('http://10.11.43.96:5050/slaves', payload=slaves)
@@ -151,7 +155,8 @@ class FecthMasterTest(asynctest.TestCase):
             m.get(
                 'http://10.0.111.32:5051/monitor/statistics.json',
                 payload=slave_statistics_response_mock)
-            slave_statistics = await get_slave_statistics("10.0.111.32:5051")
+            slave_statistics = await get_slave_statistics(
+                "10.0.111.32:5051", self.loggerMock)
             expected_result = [{
                 "appname":
                 "/sieve/captura/kirby/powerup",
@@ -193,7 +198,8 @@ class FecthMasterTest(asynctest.TestCase):
             m.get(
                 'http://10.0.111.32:5051/monitor/statistics.json',
                 payload=slave_statistics_response_mock_without_all_fields)
-            slave_statistics = await get_slave_statistics("10.0.111.32:5051")
+            slave_statistics = await get_slave_statistics(
+                "10.0.111.32:5051", self.loggerMock)
             expected_result = [{
                 "appname":
                 "/sieve/captura/kirby/powerup",
@@ -222,7 +228,8 @@ class FecthMasterTest(asynctest.TestCase):
             m.get(
                 'http://10.0.111.32:5051/monitor/statistics.json',
                 payload=slave_statistics_response_mock_multiple_tasks)
-            slave_statistics = await get_slave_statistics("10.0.111.32:5051")
+            slave_statistics = await get_slave_statistics(
+                "10.0.111.32:5051", self.loggerMock)
             expected_result = [{
                 "appname":
                 "/sieve/captura/kirby/powerup",
@@ -299,7 +306,7 @@ class FecthMasterTest(asynctest.TestCase):
                     'http://10.0.111.32:5051/monitor/statistics.json',
                     exception=Exception("Invalid slave ip."))
                 slave_statistics = await get_slave_statistics(
-                    "10.0.111.32:5051")
+                    "10.0.111.32:5051", self.loggerMock)
 
     async def test_putting_slave_statistics_on_rabbitMQ(self):
         self.maxDiff = None
@@ -309,11 +316,13 @@ class FecthMasterTest(asynctest.TestCase):
             m.get(
                 f'http://{slave_ips[0]}/monitor/statistics.json',
                 payload=slave_statistics_response_mock)
-            slave_statistics = await get_slave_statistics(slave_ips[0])
+            slave_statistics = await get_slave_statistics(
+                slave_ips[0], self.loggerMock)
             queue = asynctest.mock.CoroutineMock(
                 put=asynctest.mock.CoroutineMock(),
                 connect=asynctest.mock.CoroutineMock())
-            await send_slave_statistics_to_queue(slave_statistics, queue)
+            await send_slave_statistics_to_queue(slave_statistics, queue,
+                                                 self.loggerMock)
         self.assertEquals([
             asynctest.mock.call(
                 body=slave_statistics[0], routing_key="teste.viniciusLouzada")
@@ -327,11 +336,13 @@ class FecthMasterTest(asynctest.TestCase):
             m.get(
                 f'http://{slave_ips[0]}/monitor/statistics.json',
                 payload=slave_statistics_response_mock_multiple_tasks)
-            slave_statistics = await get_slave_statistics(slave_ips[0])
+            slave_statistics = await get_slave_statistics(
+                slave_ips[0], self.loggerMock)
             queue = asynctest.mock.CoroutineMock(
                 put=asynctest.mock.CoroutineMock(),
                 connect=asynctest.mock.CoroutineMock())
-        await send_slave_statistics_to_queue(slave_statistics, queue)
+        await send_slave_statistics_to_queue(slave_statistics, queue,
+                                             self.loggerMock)
         self.assertEquals([
             asynctest.mock.call(
                 body=slave_statistics[0], routing_key="teste.viniciusLouzada"),
