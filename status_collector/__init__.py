@@ -7,15 +7,15 @@ from asyncworker import App
 timeout_config = ClientTimeout(connect=2, total=5)
 
 async def get_slave_ip_list(master_ip):
-    session = aiohttp.ClientSession()
-    resp = await session.get(f'http://{master_ip}:5050/slaves', timeout=timeout_config)
-    data = await resp.json()
-    result = []
-    for slave in data["slaves"]:
-        result.append(f'{slave["hostname"]}:{slave["port"]}')
-    await session.close()
-
-    return result
+    try:
+        session = aiohttp.ClientSession()
+        resp = await session.get(f'http://{master_ip}:5050/slaves', timeout=timeout_config)
+        data = await resp.json()
+        await session.close()
+        return list(map(lambda slave: f'{slave["hostname"]}:{slave["port"]}', data["slaves"]))
+    except Exception:
+        await session.close()
+        raise Exception("Invalid master ip.")
 
 
 def extract_app_name(task):
