@@ -14,9 +14,32 @@ Coletor de uso de CPU e RAM para todas tasks do cluster do Asgard.
 
 ## Configurações
 
+
+STATUS_COLLECTOR_RABBITMQ_HOST=10.168.200.96
+STATUS_COLLECTOR_RABBITMQ_PWD=viniPass01
+STATUS_COLLECTOR_RABBITMQ_USER=viniciuslouzada
+STATUS_COLLECTOR_RABBITMQ_VHOST=/
+STATUS_COLLECTOR_RABBITMQ_RK=teste.viniciusLouzada
+STATUS_COLLECTOR_MESOS_MASTER_IP=10.168.200.96
+
+
+## Trabalhos futuros
+
+Migra o código para que consiga se conectar em um cluster de mesos master, ou seja, se alguns dos
+masters não responder, vai nos próximos.
+
+Isso significa que vamos usar o `get_option()` que existe na `asgard-api-sdk`.
+
 HOLLOWMAN_MESOS_ADDRESS_N: Lista com IP:PORTA de todos os mesos masters
 
 Exemplo:
 HOLLOWMAN_MESOS_ADDRESS_0: IP1
 HOLLOWMAN_MESOS_ADDRESS_1: IP2
 HOLLOWMAN_MESOS_ADDRESS_2: IP3
+
+
+* Escrever mais testes, aumentar a cobertura de testes.
+* Tratar melhor casos de errot (ConnectionError, ConnectionTimeout, etc)
+* Refatorar o código que monta os documentos com estatísticas de uma slave, remover código duplicado
+* Buscar os dados dos slaves com código concorrente. Atualmente o código vai em um slave de cada vez.
+
