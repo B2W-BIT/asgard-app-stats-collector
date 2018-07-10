@@ -1,12 +1,14 @@
 import aiohttp
+from aiohttp import ClientTimeout
 from easyqueue.async import AsyncQueue, AsyncQueueConsumerDelegate
 from status_collector import conf
 from asyncworker import App
 
+timeout_config = ClientTimeout(connect=2, total=5)
 
 async def get_slave_ip_list(master_ip):
     session = aiohttp.ClientSession()
-    resp = await session.get(f'http://{master_ip}:5050/slaves')
+    resp = await session.get(f'http://{master_ip}:5050/slaves', timeout=timeout_config)
     data = await resp.json()
     result = []
     for slave in data["slaves"]:
@@ -16,11 +18,13 @@ async def get_slave_ip_list(master_ip):
     return result
 
 
+
+
 async def get_slave_statistics(slave_ip, logger):
     try:
         session = aiohttp.ClientSession()
         result = []
-        resp = await session.get(f'http://{slave_ip}/monitor/statistics.json')
+        resp = await session.get(f'http://{slave_ip}/monitor/statistics.json', timeout=timeout_config)
         data = await resp.json()
         for task in data:
             if task["statistics"].get("cpus_throttled_time_secs") is not None:
