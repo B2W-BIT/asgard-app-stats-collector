@@ -18,58 +18,59 @@ async def get_slave_ip_list(master_ip):
     return result
 
 
+def extract_app_name(task):
+    return "/" + task["executor_id"].split('.')[0].replace("_", "/")
 
 
-async def get_slave_statistics(slave_ip, logger):
-    try:
-        session = aiohttp.ClientSession()
-        result = []
-        resp = await session.get(f'http://{slave_ip}/monitor/statistics.json', timeout=timeout_config)
-        data = await resp.json()
-        for task in data:
-            if task["statistics"].get("cpus_throttled_time_secs") is not None:
-                app_name = task["executor_id"].split('.')[0]
-                app_name = app_name.replace("_", "/")
-                app_name = "/" + app_name
-                task_name = task["executor_id"]
-                cpu_system_time = task["statistics"]["cpus_system_time_secs"]
-                cpu_user_time = task["statistics"]["cpus_user_time_secs"]
-                cpu_throttled_time = task["statistics"][
-                    "cpus_throttled_time_secs"]
-                cpu_throttled_time_percentage = (cpu_throttled_time * 100) / (
-                    cpu_system_time + cpu_user_time)
-                mem_limit = task["statistics"]["mem_limit_bytes"]
-                mem_rss = task["statistics"]["mem_rss_bytes"]
-                mem_usage_percentage = (mem_rss * 100) / mem_limit
-                statistics = {
+def extract_task_name(task):
+    return task["executor_id"]
+
+
+def extract_cpu_throttled_percentage(task):
+    cpu_system_time = task["statistics"]["cpus_system_time_secs"]
+    cpu_user_time = task["statistics"]["cpus_user_time_secs"]
+    cpu_throttled_time = task["statistics"]["cpus_throttled_time_secs"]
+    return (cpu_throttled_time * 100) / (cpu_system_time + cpu_user_time)
+
+
+def extract_memory_usage_percentage(task):
+    mem_limit = task["statistics"]["mem_limit_bytes"]
+    mem_rss = task["statistics"]["mem_rss_bytes"]
+    return (mem_rss * 100) / mem_limit
+
+
+def build_statistic_for_response(task):
+    app_name = extract_app_name(task)
+    task_name = extract_task_name(task)
+    mem_usage_percentage = extract_memory_usage_percentage(task)
+    if task["statistics"].get("cpus_throttled_time_secs"):
+        cpu_throttled_time_percentage = extract_cpu_throttled_percentage(task)
+        return {
                     "appname": app_name,
                     "task_name": task_name,
                     "cpu_throttled_percentage": cpu_throttled_time_percentage,
                     "memory_usage_percentage": mem_usage_percentage,
                     **task["statistics"]
                 }
-                result.append(statistics)
-            else:
-                app_name = task["executor_id"].split('.')[0]
-                app_name = app_name.replace("_", "/")
-                app_name = "/" + app_name
-                task_name = task["executor_id"]
-                mem_limit = task["statistics"]["mem_limit_bytes"]
-                mem_rss = task["statistics"]["mem_rss_bytes"]
-                mem_usage_percentage = (mem_rss * 100) / mem_limit
-                statistics = {
+    else:
+        return {
                     "appname": app_name,
                     "task_name": task_name,
                     "memory_usage_percentage": mem_usage_percentage,
                     **task["statistics"]
                 }
-                result.append(statistics)
+
+async def get_slave_statistics(slave_ip, logger):
+    try:
+        session = aiohttp.ClientSession()
+        resp = await session.get(f'http://{slave_ip}/monitor/statistics.json', timeout=timeout_config)
+        tasks = await resp.json()
         await session.close()
-        return result
+        return list(map(build_statistic_for_response, tasks))
     except Exception:
         await session.close()
         raise Exception("Invalid slave ip.")
-
+    
 
 async def send_slave_statistics_to_queue(slave_statistics, queue, logger):
     await queue.connect()
