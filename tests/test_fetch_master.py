@@ -164,7 +164,7 @@ class FecthMasterTest(asynctest.TestCase):
                 "task_name":
                 "sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
                 "cpu_throttled_percentage":
-                0.2694659854808117,
+                0.26874181769336525,
                 "memory_usage_percentage":
                 66.73648231907895,
                 "cpus_limit":
@@ -237,7 +237,7 @@ class FecthMasterTest(asynctest.TestCase):
                 "task_name":
                 "sieve_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
                 "cpu_throttled_percentage":
-                0.2694659854808117,
+                0.26874181769336525,
                 "memory_usage_percentage":
                 66.73648231907895,
                 "cpus_limit":
@@ -270,7 +270,7 @@ class FecthMasterTest(asynctest.TestCase):
                 "task_name":
                 "sieve2_captura_kirby_powerup.947f6124-762a-11e8-b78b-c678b0156430",
                 "cpu_throttled_percentage":
-                0.2694659854808117,
+                0.26874181769336525,
                 "memory_usage_percentage":
                 66.73648231907895,
                 "cpus_limit":

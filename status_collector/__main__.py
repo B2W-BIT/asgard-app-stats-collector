@@ -6,7 +6,22 @@ from aiologger.loggers.json import JsonLogger
 import time
 
 
-async def main():
+async def async_tasks(ip, logger,queue):
+    try:
+        start = int(round(time.time() * 1000000))
+        statistics = await get_slave_statistics(ip, logger)
+        end = int(round(time.time() * 1000000))
+        elapsed = end - start
+        await logger.debug({
+                    "slaveIp": ip,
+                    "totalTasks": len(statistics),
+                    "processTime": elapsed
+                })
+        await send_slave_statistics_to_queue(statistics, queue, logger)
+    except Exception as e:
+        await logger.exception(e)
+
+async def main(loop):
     logger = await JsonLogger.with_default_handlers(level=10, flatten=True)
     queue = AsyncQueue(
         conf.STATUS_COLLECTOR_RABBITMQ_HOST,
@@ -16,20 +31,17 @@ async def main():
         virtual_host=conf.STATUS_COLLECTOR_RABBITMQ_VHOST)
     ip_list = await get_slave_ip_list(conf.STATUS_COLLECTOR_MESOS_MASTER_IP)
     await logger.debug({"totalSlaves": len(ip_list), "slaveList": ip_list})
-    for ip in ip_list:
-        try:
-            start = time.time()
-            statistics = await get_slave_statistics(ip, logger)
-            end = time.time()
-            elapsed = end - start
-            await logger.debug({
-                "slaveIp": ip,
-                "totalTasks": len(statistics),
-                "processTime": elapsed
-            })
-            await send_slave_statistics_to_queue(statistics, queue, logger)
-        except Exception as e:
-            await logger.exception(e)
+    
+    try:
+        start = int(round(time.time() * 1000000))
+        tasks = [async_tasks(ip, logger, queue) for ip in ip_list]
+        end = int(round(time.time() * 1000000))
+        await asyncio.gather(*tasks)
+        print(end - start)
+    except Exception as e:
+        await logger.exception(e)
 
 
-asyncio.get_event_loop().run_until_complete(main())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main(loop))
+

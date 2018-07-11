@@ -30,7 +30,7 @@ def extract_cpu_throttled_percentage(task):
     cpu_system_time = task["statistics"]["cpus_system_time_secs"]
     cpu_user_time = task["statistics"]["cpus_user_time_secs"]
     cpu_throttled_time = task["statistics"]["cpus_throttled_time_secs"]
-    return (cpu_throttled_time * 100) / (cpu_system_time + cpu_user_time)
+    return (cpu_throttled_time * 100) / (cpu_system_time + cpu_user_time + cpu_throttled_time)
 
 
 def extract_memory_usage_percentage(task):
