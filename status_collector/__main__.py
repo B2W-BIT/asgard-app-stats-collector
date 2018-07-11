@@ -8,9 +8,9 @@ import time
 
 async def async_tasks(ip, logger,queue):
     try:
-        start = int(round(time.time() * 1000000))
+        start = time.time()
         statistics = await get_slave_statistics(ip, logger)
-        end = int(round(time.time() * 1000000))
+        end = time.time()
         elapsed = end - start
         await logger.debug({
                     "slaveIp": ip,
