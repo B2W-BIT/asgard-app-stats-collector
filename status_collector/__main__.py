@@ -21,7 +21,7 @@ async def async_tasks(ip, logger,queue):
     except Exception as e:
         await logger.exception(e)
 
-async def main(loop):
+async def main():
     logger = await JsonLogger.with_default_handlers(level=10, flatten=True)
     queue = AsyncQueue(
         conf.STATUS_COLLECTOR_RABBITMQ_HOST,
@@ -33,15 +33,11 @@ async def main(loop):
     await logger.debug({"totalSlaves": len(ip_list), "slaveList": ip_list})
     
     try:
-        start = int(round(time.time() * 1000000))
         tasks = [async_tasks(ip, logger, queue) for ip in ip_list]
-        end = int(round(time.time() * 1000000))
         await asyncio.gather(*tasks)
-        print(end - start)
     except Exception as e:
         await logger.exception(e)
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main(loop))
+asyncio.get_event_loop().run_until_complete(main())
 
