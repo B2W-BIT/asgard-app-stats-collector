@@ -34,10 +34,11 @@ Isso significa que vamos usar o `get_option()` que existe na `asgard-api-sdk`.
 HOLLOWMAN_MESOS_ADDRESS_N: Lista com IP:PORTA de todos os mesos masters
 
 Exemplo:
-HOLLOWMAN_MESOS_ADDRESS_0: IP1
-HOLLOWMAN_MESOS_ADDRESS_1: IP2
-HOLLOWMAN_MESOS_ADDRESS_2: IP3
-
+```
+HOLLOWMAN_MESOS_ADDRESS_0: http://IP1:PORTA1
+HOLLOWMAN_MESOS_ADDRESS_1: http://IP2:PORTA2
+HOLLOWMAN_MESOS_ADDRESS_2: http://IP3:PORTA3
+```
 
 * Escrever mais testes, aumentar a cobertura de testes.
 * Tratar melhor casos de errot (ConnectionError, ConnectionTimeout, etc)
