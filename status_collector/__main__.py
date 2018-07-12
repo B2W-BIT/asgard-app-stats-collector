@@ -1,25 +1,9 @@
 import asyncio
 from status_collector import conf
 from easyqueue.async import AsyncQueue
-from status_collector import Test, get_slave_ip_list, get_slave_statistics, send_slave_statistics_to_queue
+from status_collector import Test, get_slave_ip_list, get_slave_statistics, send_slave_statistics_to_queue, async_tasks
 from aiologger.loggers.json import JsonLogger
-import time
 
-
-async def async_tasks(ip, logger,queue):
-    try:
-        start = time.time()
-        statistics = await get_slave_statistics(ip, logger)
-        end = time.time()
-        elapsed = end - start
-        await logger.debug({
-                    "slaveIp": ip,
-                    "totalTasks": len(statistics),
-                    "processTime": elapsed
-                })
-        await send_slave_statistics_to_queue(statistics, queue, logger)
-    except Exception as e:
-        await logger.exception(e)
 
 async def main():
     logger = await JsonLogger.with_default_handlers(level=10, flatten=True)

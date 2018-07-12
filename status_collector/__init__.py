@@ -3,6 +3,7 @@ from aiohttp import ClientTimeout
 from easyqueue.async import AsyncQueue, AsyncQueueConsumerDelegate
 from status_collector import conf
 from asyncworker import App
+import time
 
 timeout_config = ClientTimeout(connect=2, total=5)
 
@@ -15,7 +16,7 @@ async def get_slave_ip_list(master_ip):
         return list(map(lambda slave: f'{slave["hostname"]}:{slave["port"]}', data["slaves"]))
     except Exception:
         await session.close()
-        raise Exception("Invalid master ip.")
+        raise Exception(f"Invalid master ip {master_ip}.")
 
 
 def extract_app_name(task):
@@ -60,6 +61,7 @@ def build_statistic_for_response(task):
                     **task["statistics"]
                 }
 
+
 async def get_slave_statistics(slave_ip, logger):
     try:
         session = aiohttp.ClientSession()
@@ -69,7 +71,7 @@ async def get_slave_statistics(slave_ip, logger):
         return list(map(build_statistic_for_response, tasks))
     except Exception:
         await session.close()
-        raise Exception("Invalid slave ip.")
+        raise Exception(f"Invalid slave ip {slave_ip}.")
     
 
 async def send_slave_statistics_to_queue(slave_statistics, queue, logger):
@@ -77,6 +79,22 @@ async def send_slave_statistics_to_queue(slave_statistics, queue, logger):
     for task in slave_statistics:
         await queue.put(
             body=task, routing_key=conf.STATUS_COLLECTOR_RABBITMQ_RK)
+
+
+async def async_tasks(ip, logger, queue):
+    try:
+        start = time.time()
+        statistics = await get_slave_statistics(ip, logger)
+        end = time.time()
+        elapsed = end - start
+        await logger.debug({
+                    "slaveIp": ip,
+                    "totalTasks": len(statistics),
+                    "processTime": elapsed
+                })
+        await send_slave_statistics_to_queue(statistics, queue, logger)
+    except Exception as e:
+        await logger.exception(e)
 
 
 class Test(AsyncQueueConsumerDelegate):

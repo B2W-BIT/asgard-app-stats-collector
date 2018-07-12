@@ -2,6 +2,8 @@ import asynctest
 from status_collector import get_slave_ip_list
 from status_collector import get_slave_statistics
 from status_collector import send_slave_statistics_to_queue
+from status_collector import async_tasks
+import status_collector
 from aioresponses import aioresponses
 from asynctest.mock import CoroutineMock
 from status_collector import conf
@@ -305,9 +307,18 @@ class FecthMasterTest(asynctest.TestCase):
             with self.assertRaises(Exception):
                 m.get(
                     'http://10.0.111.32:5051/monitor/statistics.json',
-                    exception=Exception("Invalid slave ip."))
+                    exception=Exception("Invalid slave ip 10.0.111.32:5051."))
                 slave_statistics = await get_slave_statistics(
                     "10.0.111.32:5051", self.loggerMock)
+    
+    async def test_master_dont_exists(self):
+        with aioresponses() as m:
+            with self.assertRaises(Exception):
+                m.get(
+                    'http://10.0.1.1:5051/monitor/statistics.json',
+                    exception=Exception("Invalid master ip 10.0.1.1:5051."))
+                slave_statistics = await get_slave_ip_list(
+                    "10.0.1.1:5051")
 
     async def test_putting_slave_statistics_on_rabbitMQ(self):
         self.maxDiff = None
@@ -353,3 +364,41 @@ class FecthMasterTest(asynctest.TestCase):
                 body=slave_statistics[1],
                 routing_key=conf.STATUS_COLLECTOR_RABBITMQ_RK)
         ], queue.put.await_args_list)
+
+    async def test_get_statistic_on_slave_an_put_into_queue(self):
+        self.maxDiff = None
+        with aioresponses() as m:
+            m.get('http://10.11.43.96:5050/slaves', payload=slaves)
+            slave_ips = await get_slave_ip_list("10.11.43.96")
+
+            m.get(
+                f'http://{slave_ips[0]}/monitor/statistics.json',
+                payload=slave_statistics_response_mock_multiple_tasks)
+            slave_statistics = await get_slave_statistics(
+                slave_ips[0], self.loggerMock)
+
+            queue = asynctest.mock.CoroutineMock(
+                put=asynctest.mock.CoroutineMock(),
+                connect=asynctest.mock.CoroutineMock())
+
+            m.get(
+                f'http://{slave_ips[0]}/monitor/statistics.json',
+                payload=slave_statistics_response_mock_multiple_tasks)
+            await async_tasks(slave_ips[0], self.loggerMock, queue)
+
+            with self.assertRaises(Exception):
+                m.get(
+                    f'http://{slave_ips[1]}/monitor/statistics.json',
+                    exception=Exception("Invalid slave ip."))
+                await async_tasks(slave_ips[1], self.loggerMock, queue)
+       
+        
+        self.assertEquals([
+            asynctest.mock.call(
+                body=slave_statistics[0],
+                routing_key=conf.STATUS_COLLECTOR_RABBITMQ_RK),
+            asynctest.mock.call(
+                body=slave_statistics[1],
+                routing_key=conf.STATUS_COLLECTOR_RABBITMQ_RK)
+        ], queue.put.await_args_list)
+        
