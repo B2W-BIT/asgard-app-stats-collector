@@ -1,4 +1,4 @@
-# Asgard app stats collector  [![Build Status](https://travis-ci.org/B2W-BIT/asgard-app-stats-collector.svg?branch=master)](https://travis-ci.org/B2W-BIT/asgard-app-stats-collector) [![codecov](https://codecov.io/gh/B2W-BIT/asgard-api/branch/master/graph/badge.svg)](https://codecov.io/gh/B2W-BIT/asgard-api)
+# Asgard app stats collector  [![Build Status](https://travis-ci.org/B2W-BIT/asgard-app-stats-collector.svg?branch=master)](https://travis-ci.org/B2W-BIT/asgard-app-stats-collector) [![codecov](https://codecov.io/gh/B2W-BIT/asgard-app-stats-collector/branch/master/graph/badge.svg)](https://codecov.io/gh/B2W-BIT/asgard-app-stats-collector)
 
 
 Coletor de uso de CPU e RAM para todas tasks do cluster do Asgard.
