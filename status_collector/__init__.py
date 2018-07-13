@@ -1,3 +1,4 @@
+import asyncio
 import aiohttp
 from aiohttp import ClientTimeout
 from easyqueue.async import AsyncQueue, AsyncQueueConsumerDelegate
@@ -72,7 +73,7 @@ async def get_slave_statistics(slave_ip, logger):
     except Exception:
         await session.close()
         raise Exception(f"Invalid slave ip {slave_ip}.")
-    
+
 
 async def send_slave_statistics_to_queue(slave_statistics, queue, logger):
     await queue.connect()
@@ -92,10 +93,22 @@ async def async_tasks(ip, logger, queue):
                     "totalTasks": len(statistics),
                     "processTime": elapsed
                 })
-        await send_slave_statistics_to_queue(statistics, queue, logger)
+        return statistics
+        #await send_slave_statistics_to_queue(statistics, queue, logger)
     except Exception as e:
         await logger.exception(e)
 
+async def fetch_app_stats(queue, logger):
+    ip_list = await get_slave_ip_list(conf.STATUS_COLLECTOR_MESOS_MASTER_IP)
+    await logger.debug({"totalSlaves": len(ip_list), "slaveList": ip_list})
+    try:
+        tasks = [async_tasks(ip, logger, queue) for ip in ip_list]
+        return_values = await asyncio.gather(*tasks, return_exceptions=True)
+        for v in return_values:
+            if v:
+                await send_slave_statistics_to_queue(v, queue, logger)
+    except Exception as e:
+        await logger.exception(e)
 
 class Test(AsyncQueueConsumerDelegate):
     @property
