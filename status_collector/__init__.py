@@ -94,8 +94,8 @@ async def async_tasks(ip, logger, queue):
                     "totalTasks": len(statistics),
                     "processTime": elapsed
                 })
-        return statistics
-        # await send_slave_statistics_to_queue(statistics, queue, logger)
+
+        await send_slave_statistics_to_queue(statistics, queue, logger)
     except Exception as e:
         await logger.exception(e)
 
@@ -106,9 +106,6 @@ async def fetch_app_stats(queue, logger):
     try:
         tasks = [async_tasks(ip, logger, queue) for ip in ip_list]
         return_values = await asyncio.gather(*tasks, return_exceptions=True)
-        for v in return_values:
-            if v:
-                await send_slave_statistics_to_queue(v, queue, logger)
         end = time.time()
         elapsed = end - start
         await logger.info({
