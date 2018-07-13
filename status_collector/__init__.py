@@ -70,7 +70,7 @@ async def get_slave_statistics(slave_ip, logger):
         tasks = await resp.json()
         await session.close()
         return list(map(build_statistic_for_response, tasks))
-    except Exception:
+    except Exception as e:
         await session.close()
         raise Exception(f"Invalid slave ip {slave_ip}.")
 
@@ -88,17 +88,19 @@ async def async_tasks(ip, logger, queue):
         statistics = await get_slave_statistics(ip, logger)
         end = time.time()
         elapsed = end - start
-        await logger.debug({
+        await logger.info({
+                    "action": "fetch_slave_statistics",
                     "slaveIp": ip,
                     "totalTasks": len(statistics),
                     "processTime": elapsed
                 })
         return statistics
-        #await send_slave_statistics_to_queue(statistics, queue, logger)
+        # await send_slave_statistics_to_queue(statistics, queue, logger)
     except Exception as e:
         await logger.exception(e)
 
 async def fetch_app_stats(queue, logger):
+    start = time.time()
     ip_list = await get_slave_ip_list(conf.STATUS_COLLECTOR_MESOS_MASTER_IP)
     await logger.debug({"totalSlaves": len(ip_list), "slaveList": ip_list})
     try:
@@ -107,6 +109,13 @@ async def fetch_app_stats(queue, logger):
         for v in return_values:
             if v:
                 await send_slave_statistics_to_queue(v, queue, logger)
+        end = time.time()
+        elapsed = end - start
+        await logger.info({
+                "action": "fetch_all_slaves_statistics",
+                "totalSlaves": len(ip_list),
+                "processTime": elapsed
+            })
     except Exception as e:
         await logger.exception(e)
 

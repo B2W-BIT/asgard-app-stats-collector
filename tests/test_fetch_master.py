@@ -7,6 +7,7 @@ import status_collector
 from aioresponses import aioresponses
 from asynctest.mock import CoroutineMock
 from status_collector import conf
+from aiologger.loggers.json import JsonLogger
 
 slaves = {
     "slaves": [{
@@ -143,7 +144,7 @@ slave_statistics_response_mock_multiple_tasks = [{
 
 class FecthMasterTest(asynctest.TestCase):
     def setUp(self):
-        self.loggerMock = CoroutineMock(debug=CoroutineMock(), exception=CoroutineMock())
+        self.loggerMock = self.loggerMock = asynctest.Mock(spec=JsonLogger)
 
     async def test_get_slaves_ips_list(self):
         with aioresponses() as m:
