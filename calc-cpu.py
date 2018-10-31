@@ -22,6 +22,7 @@ async def main():
                 continue
             before = CACHE[task_name]
             now = task_data
+            now['statistics']['cpus_limit'] -= 0.1
             delta_t = now['statistics']['timestamp'] - before['statistics']['timestamp']
             cpu_usr_secs = now['statistics']['cpus_user_time_secs'] - before['statistics']['cpus_user_time_secs']
             cpu_sys_secs = now['statistics']['cpus_system_time_secs'] - before['statistics']['cpus_system_time_secs']
@@ -30,15 +31,16 @@ async def main():
 
             cpu_usr_pct = cpu_usr_secs / delta_t * 100
             cpu_thr_pct = cpu_thr_secs / delta_t * 100
-            cpu_usr_pct_mesos = cpu_usr_pct / 100 / now['statistics']['cpus_limit'] * 100
+            cpu_usr_pct_mesos = cpu_usr_pct / now['statistics']['cpus_limit']
 
             print (f"{task_name} elapsed={delta_t:.3f}, \
-usr_secs={cpu_usr_secs:.3f}, usr_pct={cpu_usr_pct:.3f}%, usr_pct_meso={cpu_usr_pct_mesos:.3f}% ({cpu_usr_pct/100}, {now['statistics']['cpus_limit']}), \
+usr_secs={cpu_usr_secs:.3f}, usr_pct={cpu_usr_pct:.3f}%, usr_pct_meso={cpu_usr_pct_mesos:.3f}% ({cpu_usr_pct/100:.3f}, {now['statistics']['cpus_limit']:.3f}), \
 thr_secs={cpu_thr_secs:.3f}, thr_pct={cpu_thr_pct:.3f}%,\
 ")
             CACHE[task_name] = now
 
-        print ("")
+        if data:
+            print ("")
         await asyncio.sleep(1)
 
 
