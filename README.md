@@ -16,12 +16,13 @@ Coletor de uso de CPU e RAM para todas tasks do cluster do Asgard.
 
 
 ```
-STATUS_COLLECTOR_RABBITMQ_HOST: IP do RabbitMQ onde as mensagens serão colocadas;
-STATUS_COLLECTOR_RABBITMQ_PWD: Senha usada no RabbitMQ
-STATUS_COLLECTOR_RABBITMQ_USER: Username usado no RabbitMQ
-STATUS_COLLECTOR_RABBITMQ_VHOST: Virtual Host do RabbitMQ
-STATUS_COLLECTOR_RABBITMQ_RK: Routing Key usada para depositar as mensagens. O exchange usado é sempre `""`
-STATUS_COLLECTOR_MESOS_MASTER_IP: IP do meso Master (sem incluir a porta)
+STATS_COLLECTOR_RABBITMQ_HOST: IP do RabbitMQ onde as mensagens serão colocadas;
+STATS_COLLECTOR_RABBITMQ_PWD: Senha usada no RabbitMQ
+STATS_COLLECTOR_RABBITMQ_USER: Username usado no RabbitMQ
+STATS_COLLECTOR_RABBITMQ_VHOST: Virtual Host do RabbitMQ
+STATS_COLLECTOR_RABBITMQ_RK: Routing Key usada para depositar as mensagens. O exchange usado é sempre `""`
+STATS_COLLECTOR_MESOS_MASTER_IP: IP do meso Master (sem incluir a porta)
+STATS_COLLECTOR_REDIS_URL: Url completa para o redis
 ```
 
 ## Trabalhos futuros
