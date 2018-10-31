@@ -80,7 +80,7 @@ async def main():
             cpu_thr_pct = cpu_thr_secs / delta_t * 100
             cpu_usr_pct_mesos = cpu_usr_pct / now['statistics']['cpus_limit']
 
-            #print (f"{task_name} elapsed={delta_t:.3f}, \
+#            print (f"{task_name} elapsed={delta_t:.3f}, \
 #usr_secs={cpu_usr_secs:.3f}, usr_pct={cpu_usr_pct:.3f}%, usr_pct_meso={cpu_usr_pct_mesos:.3f}% ({cpu_usr_pct/100:.3f}, {now['statistics']['cpus_limit']:.3f}), \
 #thr_secs={cpu_thr_secs:.3f}, thr_pct={cpu_thr_pct:.3f}%,\
 #")
