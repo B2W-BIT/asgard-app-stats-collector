@@ -23,6 +23,8 @@ STATS_COLLECTOR_RABBITMQ_VHOST: Virtual Host do RabbitMQ
 STATS_COLLECTOR_RABBITMQ_RK: Routing Key usada para depositar as mensagens. O exchange usado é sempre `""`
 STATS_COLLECTOR_MESOS_MASTER_IP: IP do meso Master (sem incluir a porta)
 STATS_COLLECTOR_REDIS_URL: Url completa para o redis
+STATS_COLLECTOR_REDIS_POOL_MIN: Tamanho inicial do pool de coexões com o redis
+STATS_COLLECTOR_REDIS_POOL_MAX: Tamanho máximo do pool de conexões com o redis
 ```
 
 ## Trabalhos futuros
