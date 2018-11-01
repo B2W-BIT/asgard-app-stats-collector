@@ -71,11 +71,61 @@ def multiple_reads_monitor_statistics(request):
       "appname" : "/infra/stress",
       "cpu_limit" : 0.7,
       "cpu_sys_pct" : 0.0,
-      "host" : "10.168.26.167",
+      "host" : "10.168.200.55",
       "cpu_usr_pct" : 104.53893,
       "cpu_sys_host_pct" : 0.0,
       "cpu_thr_pct" : 29.84021,
       "mem_pct" : 0.0586
+   }
+}
+
+
+@pytest.fixture(scope="class")
+def multiple_reads_monitor_statistics_cfs_off(request):
+    request.cls.multuple_reads_monitor_statistics_cfs_off = {
+   "now" : {
+      "statistics" : {
+         "mem_limit_bytes" : 1107296256,
+         "cpus_system_time_secs" : 2178.139999999,
+         "cpus_limit" : 0.3,
+         "cpus_user_time_secs" : 6209.66,
+         "mem_rss_bytes" : 1063415808,
+         "timestamp" : 1541094416.35744
+      },
+      "source" : "infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020",
+      "executor_name" : "Command Executor (Task: stress.0741cf07-dde6-11e8-a6bb-0242ac120020) (Command: sh -c 'stress --cpu 1')",
+      "framework_id" : "df63a2f4-a419-430f-8ac0-25c5a9f0c0e0-0000",
+      "executor_id" : "infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020"
+   },
+   "expected_result" : {
+      "cpu_usr_host_pct" : 0.79138,
+      "cpu_pct" : 3.33334,
+      "appname" : "/infra/stress",
+      "cpu_sys_secs" : 0.0,
+      "cpu_usr_pct" : 2.63791,
+      "cpu_sys_pct" : 0.0,
+      "cpu_limit" : 0.3,
+      "taskname" : "infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020",
+      "mem_pct" : 96.03716,
+      "mem_bytes" : 1063415808,
+      "cpu_usr_secs" : 0.01001,
+      "period_secs" : 1.26363,
+      "cpu_sys_host_pct" : 0.0,
+      "host" : "10.168.200.55"
+   },
+   "before" : {
+      "framework_id" : "df63a2f4-a419-430f-8ac0-25c5a9f0c0e0-0000",
+      "executor_id" : "infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020",
+      "executor_name" : "Command Executor (Task: stress.0741cf07-dde6-11e8-a6bb-0242ac120020) (Command: sh -c 'stress --cpu 1')",
+      "statistics" : {
+         "cpus_system_time_secs" : 2178.139999999,
+         "mem_limit_bytes" : 1107296256,
+         "mem_rss_bytes" : 1063415808,
+         "timestamp" : 1541094415.09381,
+         "cpus_user_time_secs" : 6209.65,
+         "cpus_limit" : 0.3
+      },
+      "source" : "infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020"
    }
 }
 
