@@ -1,12 +1,27 @@
 import asyncio
 import aiohttp
+import aioredis
 from aiohttp import ClientTimeout
 from easyqueue.async import AsyncQueue, AsyncQueueConsumerDelegate
 from status_collector import conf
 from asyncworker import App
 import time
+from aiologger.loggers.json import JsonLogger
 
 timeout_config = ClientTimeout(connect=2, total=5)
+
+
+async def main():
+    conf.cache = await aioredis.create_redis_pool(conf.REDIS_URL, minsize=conf.REDIS_POOL_MIN, maxsize=conf.REDIS_POOL_MAX)
+    logger = JsonLogger.with_default_handlers(level=10, flatten=True)
+    queue = AsyncQueue(
+        conf.STATS_COLLECTOR_RABBITMQ_HOST,
+        conf.STATS_COLLECTOR_RABBITMQ_USER,
+        conf.STATS_COLLECTOR_RABBITMQ_PWD,
+        delegate=Test(),
+        virtual_host=conf.STATS_COLLECTOR_RABBITMQ_VHOST)
+    await fetch_app_stats(queue, logger)
+
 
 async def get_slave_ip_list(master_ip):
     try:
