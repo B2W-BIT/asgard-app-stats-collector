@@ -3,22 +3,36 @@ import asynctest
 from asynctest import mock
 from asynctest.mock import CoroutineMock
 import aioredis
+from aioresponses import aioresponses
+from aiologger.loggers.json import JsonLogger
 
-from status_collector import build_statistic_for_response, conf
+from status_collector import build_statistic_for_response, conf, get_slave_statistics
 
 @pytest.mark.usefixtures("monitor_statistics_one_task")
 @pytest.mark.usefixtures("multiple_reads_monitor_statistics")
 @pytest.mark.usefixtures("multiple_reads_monitor_statistics_cfs_off")
+@pytest.mark.usefixtures("slave_statistics_multiple_tasks")
 class StatsCollectorTest(asynctest.TestCase):
 
-    def test_remove_empty_stats_from_final_list(self):
+    def setUp(self):
+        self.logger = asynctest.Mock(spec=JsonLogger)
+
+    async def test_remove_empty_stats_from_final_list(self):
         """
         O método build_statistic_for_response() deve retornar None caso a task
         em questão não tenha estatisticas anteriores já no cache.
 
         Os cálculos são feitos apenas quando já temos uma leitura anterior.
         """
-        self.fail()
+        with aioresponses() as m, \
+            mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
+
+            redis_mock.get.side_effect = [self.slave_statistics_multiple_tasks[0], None]
+            m.get( 'http://10.0.111.32:5051/monitor/statistics.json', payload=self.slave_statistics_multiple_tasks)
+
+            slave_statistics = await get_slave_statistics( "10.0.111.32:5051", self.logger)
+            self.assertEqual(1, len(slave_statistics))
+            self.assertEqual("infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020", self.slave_statistics_multiple_tasks[0]["executor_id"])
 
     async def test_add_task_to_cache_on_first_fetch(self):
         """
@@ -31,7 +45,7 @@ class StatsCollectorTest(asynctest.TestCase):
         task_info = self.monitor_statistics_one_task[0]
         with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
             redis_mock.get.return_value = None
-            self.assertIsNone(await build_statistic_for_response(task_info))
+            self.assertIsNone(await build_statistic_for_response("10.168.200.55", task_info))
             redis_mock.get.assert_awaited_with(task_info['executor_id'])
             redis_mock.set.assert_awaited_with(task_info['executor_id'], task_info)
 
@@ -84,15 +98,3 @@ class StatsCollectorTest(asynctest.TestCase):
             }
             self.assertDictEqual(expected_results, calculated_metrics)
 
-    def test_update_cache_after_all_calculations(self):
-        """
-        Após os cálculos precisamos atualizar os dados do cache com a leitura
-        atual da task
-        """
-        self.fail()
-
-    def test_get_slave_statistics_passa_slave_ip_adiante(self):
-        """
-        Precisamos passar o slave_ip para a função que calcula as métricas
-        """
-        self.fail()

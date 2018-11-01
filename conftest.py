@@ -129,3 +129,41 @@ def multiple_reads_monitor_statistics_cfs_off(request):
    }
 }
 
+@pytest.fixture(scope="class")
+def slave_statistics_multiple_tasks(request):
+    request.cls.slave_statistics_multiple_tasks = [
+   {
+      "source" : "infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020",
+      "statistics" : {
+         "cpus_throttled_time_secs" : 3.480643122,
+         "mem_limit_bytes" : 167772160,
+         "cpus_nr_throttled" : 120,
+         "mem_rss_bytes" : 98304,
+         "cpus_system_time_secs" : 0.07,
+         "timestamp" : 1541084079.52051,
+         "cpus_nr_periods" : 123,
+         "cpus_user_time_secs" : 8.81,
+         "cpus_limit" : 0.8
+      },
+      "executor_name" : "Command Executor (Task: infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020) (Command: sh -c 'stress --cpu 1')",
+      "framework_id" : "df63a2f4-a419-430f-8ac0-25c5a9f0c0e0-0000",
+      "executor_id" : "infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020"
+   },
+   {
+      "executor_name" : "Command Executor (Task: infra_sleep.c45ca6a6-dddc-11e8-a6bb-0242ac120020) (Command: sh -c 'while true;\n...')",
+      "statistics" : {
+         "cpus_throttled_time_secs" : 3705.155535528,
+         "mem_limit_bytes" : 167772160,
+         "cpus_nr_throttled" : 36669,
+         "mem_rss_bytes" : 1253376,
+         "cpus_system_time_secs" : 20.13,
+         "cpus_nr_periods" : 38703,
+         "timestamp" : 1541084079.52572,
+         "cpus_user_time_secs" : 52.47,
+         "cpus_limit" : 0.11
+      },
+      "executor_id" : "infra_sleep.c45ca6a6-dddc-11e8-a6bb-0242ac120020",
+      "framework_id" : "df63a2f4-a419-430f-8ac0-25c5a9f0c0e0-0000",
+      "source" : "infra_sleep.c45ca6a6-dddc-11e8-a6bb-0242ac120020"
+   }
+]

@@ -119,7 +119,10 @@ async def get_slave_statistics(slave_ip, logger):
         resp = await session.get(f'http://{slave_ip}/monitor/statistics.json', timeout=timeout_config)
         tasks = await resp.json()
         await session.close()
-        return list(map(build_statistic_for_response, slave_ip, tasks))
+        async_tasks = [build_statistic_for_response(slave_ip, task) for task in tasks]
+
+        # Filtramos retornos que forem None.
+        return [item for item in await asyncio.gather(*async_tasks, return_exceptions=True) if item]
     except Exception as e:
         await session.close()
         raise Exception(f"Invalid slave ip {slave_ip}.")
