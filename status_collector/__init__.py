@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 import decimal
 import asyncio
@@ -55,13 +56,15 @@ async def build_statistic_for_response(slave_ip, task_now):
 
     task_before = await conf.cache.get(taskname)
     if not task_before:
-        await conf.cache.set(taskname, task_now)
+        await conf.cache.set(taskname, json.dumps(task_now))
         return None
+
+    task_before = json.loads(task_before)
 
     now_stats = task_now['statistics']
     before_stats = task_before['statistics']
 
-    await conf.cache.set(taskname, task_now)
+    await conf.cache.set(taskname, json.dumps(task_now))
 
     period_secs = Decimal(now_stats['timestamp'] - before_stats['timestamp'])
     cpu_limit = Decimal(now_stats['cpus_limit'])
@@ -125,14 +128,14 @@ async def get_slave_statistics(slave_ip, logger):
         return [item for item in await asyncio.gather(*async_tasks, return_exceptions=True) if item]
     except Exception as e:
         await session.close()
-        raise Exception(f"Invalid slave ip {slave_ip}.")
+        raise Exception(f"Invalid slave ip {slave_ip}. {e}")
 
 
 async def send_slave_statistics_to_queue(slave_statistics, queue, logger):
     await queue.connect()
     for task in slave_statistics:
         await queue.put(
-            body=task, routing_key=conf.STATUS_COLLECTOR_RABBITMQ_RK)
+            body=task, routing_key=conf.STATS_COLLECTOR_RABBITMQ_RK)
 
 
 async def async_tasks(ip, logger, queue):
@@ -154,7 +157,7 @@ async def async_tasks(ip, logger, queue):
 
 async def fetch_app_stats(queue, logger):
     start = time.time()
-    ip_list = await get_slave_ip_list(conf.STATUS_COLLECTOR_MESOS_MASTER_IP)
+    ip_list = await get_slave_ip_list(conf.STATS_COLLECTOR_MESOS_MASTER_IP)
     await logger.debug({"totalSlaves": len(ip_list), "slaveList": ip_list})
     try:
         tasks = [async_tasks(ip, logger, queue) for ip in ip_list]

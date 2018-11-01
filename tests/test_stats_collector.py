@@ -1,3 +1,4 @@
+import json
 import pytest
 import asynctest
 from asynctest import mock
@@ -42,13 +43,13 @@ class StatsCollectorTest(asynctest.TestCase):
         assert return None
         assert add to cache
         """
+        self.maxDiff = None
         task_info = self.monitor_statistics_one_task[0]
         with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
             redis_mock.get.return_value = None
             self.assertIsNone(await build_statistic_for_response("10.168.200.55", task_info))
             redis_mock.get.assert_awaited_with(task_info['executor_id'])
-            redis_mock.set.assert_awaited_with(task_info['executor_id'], task_info)
-
+            redis_mock.set.assert_awaited_with(task_info['executor_id'], json.dumps(task_info))
 
     async def test_calculate_metrics_if_task_already_in_cache(self):
         """
@@ -60,10 +61,10 @@ class StatsCollectorTest(asynctest.TestCase):
         task_info_before = self.multuple_reads_monitor_statistics['before']
 
         with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
-            redis_mock.get.return_value = task_info_before
+            redis_mock.get.return_value = json.dumps(task_info_before)
             calculated_metrics = await build_statistic_for_response("10.168.200.55", task_info_now)
             redis_mock.get.assert_awaited_with(task_info_now['executor_id'])
-            redis_mock.set.assert_awaited_with(task_info_now['executor_id'], task_info_now)
+            redis_mock.set.assert_awaited_with(task_info_now['executor_id'], json.dumps(task_info_now))
 
             expected_results = {
                 "stats": {
@@ -84,10 +85,10 @@ class StatsCollectorTest(asynctest.TestCase):
         task_info_before = self.multuple_reads_monitor_statistics_cfs_off['before']
 
         with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
-            redis_mock.get.return_value = task_info_before
+            redis_mock.get.return_value = json.dumps(task_info_before)
             calculated_metrics = await build_statistic_for_response("10.168.200.55", task_info_now)
             redis_mock.get.assert_awaited_with(task_info_now['executor_id'])
-            redis_mock.set.assert_awaited_with(task_info_now['executor_id'], task_info_now)
+            redis_mock.set.assert_awaited_with(task_info_now['executor_id'], json.dumps(task_info_now))
 
             expected_results = {
                 "stats": {
