@@ -1,3 +1,5 @@
+from decimal import Decimal
+import decimal
 import asyncio
 import aiohttp
 import aioredis
@@ -55,27 +57,65 @@ def extract_memory_usage_percentage(task):
     mem_rss = task["statistics"]["mem_rss_bytes"]
     return (mem_rss * 100) / mem_limit
 
+def round_up(n: Decimal, prec: int=5) -> float:
+    return float(n.quantize(Decimal("." + "0" * prec), rounding=decimal.ROUND_UP))
 
-def build_statistic_for_response(task):
-    app_name = extract_app_name(task)
-    task_name = extract_task_name(task)
-    mem_usage_percentage = extract_memory_usage_percentage(task)
-    if task["statistics"].get("cpus_throttled_time_secs"):
-        cpu_throttled_time_percentage = extract_cpu_throttled_percentage(task)
-        return {
-                    "appname": app_name,
-                    "task_name": task_name,
-                    "cpu_throttled_percentage": cpu_throttled_time_percentage,
-                    "memory_usage_percentage": mem_usage_percentage,
-                    **task["statistics"]
-                }
-    else:
-        return {
-                    "appname": app_name,
-                    "task_name": task_name,
-                    "memory_usage_percentage": mem_usage_percentage,
-                    **task["statistics"]
-                }
+
+async def build_statistic_for_response(task_now):
+    appname = extract_app_name(task_now)
+    taskname = extract_task_name(task_now)
+
+    task_before = await conf.cache.get(taskname)
+    if not task_before:
+        await conf.cache.set(taskname, task_now)
+        return None
+
+    now_stats = task_now['statistics']
+    before_stats = task_before['statistics']
+
+    await conf.cache.set(taskname, task_now)
+
+    period_secs = Decimal(now_stats['timestamp'] - before_stats['timestamp'])
+    cpu_limit = Decimal(now_stats['cpus_limit'])
+
+    cpu_thr_secs = Decimal(now_stats['cpus_throttled_time_secs']) - Decimal(before_stats['cpus_throttled_time_secs'])
+    cpu_usr_secs = Decimal(now_stats['cpus_user_time_secs']) - Decimal(before_stats['cpus_user_time_secs'])
+    cpu_sys_secs = Decimal(now_stats['cpus_system_time_secs']) - Decimal(before_stats['cpus_system_time_secs'])
+
+    cpu_usr_host_pct = cpu_usr_secs / period_secs * 100
+    cpu_sys_host_pct = cpu_sys_secs / period_secs * 100
+
+    mem_bytes = now_stats['mem_rss_bytes']
+    mem_pct = Decimal(now_stats['mem_rss_bytes']) / Decimal(now_stats['mem_limit_bytes']) * 100
+
+    cpu_usr_pct = cpu_usr_host_pct / cpu_limit
+    cpu_sys_pct = cpu_sys_host_pct / cpu_limit
+    cpu_thr_pct = cpu_thr_secs / period_secs * 100
+    cpu_pct = (Decimal(cpu_usr_secs) + Decimal(cpu_sys_secs)) / Decimal(cpu_limit) * 100
+
+    data = {
+        "stats": {
+            "before": task_before['statistics'],
+            "now": task_now['statistics']
+        },
+        "cpu_limit": round_up(cpu_limit, prec=1),
+        "host": "10.168.26.167",
+        "taskname": taskname,
+        "appname": appname,
+        "period_secs": round_up(period_secs),
+        "cpu_usr_secs": round_up(cpu_usr_secs),
+        "cpu_sys_secs": round_up(cpu_sys_secs),
+        "cpu_thr_secs": round_up(cpu_thr_secs),
+        "mem_bytes": mem_bytes,
+        "mem_pct": round_up(mem_pct),
+        "cpu_sys_host_pct": round_up(cpu_sys_host_pct),
+        "cpu_usr_host_pct": round_up(cpu_usr_host_pct),
+        "cpu_usr_pct": round_up(cpu_usr_pct),
+        "cpu_sys_pct": round_up(cpu_sys_pct),
+        "cpu_pct": round_up(cpu_pct),
+        "cpu_thr_pct": round_up(cpu_thr_pct)
+    }
+    return data
 
 
 async def get_slave_statistics(slave_ip, logger):
