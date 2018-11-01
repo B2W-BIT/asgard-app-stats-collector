@@ -1,16 +1,23 @@
 from importlib import reload
-import unittest
-from unittest import mock
-from status_collector import conf
+import asynctest
+from asynctest import mock
+from status_collector import conf, main
+import status_collector
 import os
 
-class ConfTest(unittest.TestCase):
+class ConfTest(asynctest.TestCase):
 
-    def test_read_redis_address(self):
+    async def test_read_redis_configs(self):
         expected_redis_url = "redis://cache.asgard/0"
-        with mock.patch.dict(os.environ, STATS_COLLECTOR_REDIS_URL=expected_redis_url):
+        with mock.patch.dict(os.environ,
+                             STATS_COLLECTOR_REDIS_URL=expected_redis_url,
+                             STATS_COLLECTOR_REDIS_POOL_MIN="10",
+                             STATS_COLLECTOR_REDIS_POOL_MAX="32"), \
+                mock.patch.object(conf.aioredis, "create_redis_pool") as create_redis_pool_mock:
             reload(conf)
             self.assertEqual(expected_redis_url, conf.REDIS_URL)
+            self.assertEqual(10, conf.REDIS_POOL_MIN)
+            self.assertEqual(32, conf.REDIS_POOL_MAX)
 
     def test_read_rabbitmq_configs(self):
 
