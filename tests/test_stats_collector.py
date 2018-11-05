@@ -29,13 +29,16 @@ class StatsCollectorTest(asynctest.TestCase):
 
         Os cálculos são feitos apenas quando já temos uma leitura anterior.
         """
+        task_info_now = self.multuple_reads_monitor_statistics['now']
+        task_info_before = self.multuple_reads_monitor_statistics['before']
+
         with aioresponses() as m, \
             mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
 
-            redis_mock.get.side_effect = [json.dumps(self.slave_statistics_multiple_tasks[0]), None]
+            redis_mock.get.side_effect = [json.dumps(task_info_before), None]
             m.get( 'http://10.0.111.32:5051/monitor/statistics.json', payload=self.slave_statistics_multiple_tasks)
 
-            slave_statistics = await get_slave_statistics( "10.0.111.32:5051", self.logger)
+            slave_statistics = await get_slave_statistics("10.0.111.32:5051", self.logger)
             self.assertEqual(1, len(slave_statistics))
             self.assertEqual("infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020", self.slave_statistics_multiple_tasks[0]["executor_id"])
 
@@ -47,7 +50,6 @@ class StatsCollectorTest(asynctest.TestCase):
         assert return None
         assert add to cache
         """
-        self.maxDiff = None
         task_info = self.monitor_statistics_one_task[0]
         with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
             redis_mock.get.return_value = None
@@ -60,7 +62,6 @@ class StatsCollectorTest(asynctest.TestCase):
         Fazemos todas as contas caso a task em questão já tenha uma entrada
         no cache
         """
-        self.maxDiff = None
         task_info_now = self.multuple_reads_monitor_statistics['now']
         task_info_before = self.multuple_reads_monitor_statistics['before']
 
