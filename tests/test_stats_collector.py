@@ -11,6 +11,7 @@ import aiohttp
 
 
 from status_collector import build_statistic_for_response, conf, get_slave_statistics
+import status_collector
 
 @pytest.mark.usefixtures("monitor_statistics_one_task")
 @pytest.mark.usefixtures("multiple_reads_monitor_statistics")
@@ -31,7 +32,7 @@ class StatsCollectorTest(asynctest.TestCase):
         with aioresponses() as m, \
             mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
 
-            redis_mock.get.side_effect = [self.slave_statistics_multiple_tasks[0], None]
+            redis_mock.get.side_effect = [json.dumps(self.slave_statistics_multiple_tasks[0]), None]
             m.get( 'http://10.0.111.32:5051/monitor/statistics.json', payload=self.slave_statistics_multiple_tasks)
 
             slave_statistics = await get_slave_statistics( "10.0.111.32:5051", self.logger)
@@ -101,6 +102,28 @@ class StatsCollectorTest(asynctest.TestCase):
                 **self.multuple_reads_monitor_statistics_cfs_off['expected_result']
             }
             self.assertDictEqual(expected_results, calculated_metrics)
+
+    async def test_logs_exception_for_each_error_on_calculate_metrics(self):
+        """
+        Como calculamos as métricas de cada task dentro de um asyncio.gather(*tasks, return_exceptions=True)
+        precisamos logar eventuais erros nessas chamadas,
+        """
+        with aioresponses() as resp, \
+                mock.patch.object(status_collector, 'build_statistic_for_response') as build_statistic_for_response_mock:
+            build_statistic_for_response_mock.side_effect = [{"taskname": "/infra/name"}, Exception("Error")]
+            resp.get("http://10.0.1.1:5051/monitor/statistics.json", payload=[{}, {}])
+
+            result = await get_slave_statistics("10.0.1.1:5051", self.logger)
+            self.assertEqual(1, len(result))
+            self.logger.exception.assert_awaited_with({
+                    "action": "build_slave_stask_statistics",
+                    "exception": {
+                        "message": "Error",
+                        "traceback": mock.ANY,
+                        "type": "Exception",
+                    },
+                    "slave_ip": "10.0.1.1:5051"
+            })
 
     async def test_logs_traceback_if_slave_fetch_fails(self):
         slave_ip = "10.0.1.1:5051"

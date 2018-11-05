@@ -134,8 +134,23 @@ async def get_slave_statistics(slave_ip, logger):
         await session.close()
         async_tasks = [build_statistic_for_response(slave_ip, task) for task in tasks]
 
-        # Filtramos retornos que forem None.
-        return [item for item in await asyncio.gather(*async_tasks, return_exceptions=True) if item]
+        results = await asyncio.gather(*async_tasks, return_exceptions=True)
+        valid_results = []
+        for r in results:
+            if r and not isinstance(r, Exception):
+                valid_results.append(r)
+            if isinstance(r, Exception):
+                await logger.exception({
+                    "action": "build_slave_stask_statistics",
+                    "exception": {
+                        "message": str(r),
+                        "traceback": traceback.format_tb(r.__traceback__),
+                        "type": r.__class__.__name__,
+                    },
+                    "slave_ip": slave_ip
+                })
+
+        return valid_results
     except Exception as e:
         await session.close()
         await logger.exception({

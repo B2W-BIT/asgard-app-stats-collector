@@ -163,38 +163,10 @@ class FecthMasterTest(asynctest.TestCase):
             })
 
     async def test_putting_slave_statistics_on_rabbitMQ(self):
-        with aioresponses() as m:
-            m.get('http://10.11.43.96:5050/slaves', payload=slaves)
-            slave_ips = await get_slave_ip_list("10.11.43.96", self.loggerMock)
-            m.get(
-                f'http://{slave_ips[0]}/monitor/statistics.json',
-                payload=slave_statistics_response_mock)
-            slave_statistics = await get_slave_statistics(
-                slave_ips[0], self.loggerMock)
-            queue = asynctest.mock.CoroutineMock(
-                put=asynctest.mock.CoroutineMock(),
-                connect=asynctest.mock.CoroutineMock())
-            await send_slave_statistics_to_queue(slave_statistics, queue,
-                                                 self.loggerMock)
-        self.assertEqual([
-            asynctest.mock.call(
-                body=slave_statistics[0],
-                routing_key=conf.STATS_COLLECTOR_RABBITMQ_RK)
-        ], queue.put.await_args_list)
-
-    async def test_putting_slave_multiple_tasks_statistics_on_rabbitMQ(self):
-        self.maxDiff = None
-        with aioresponses() as m:
-            m.get('http://10.11.43.96:5050/slaves', payload=slaves)
-            slave_ips = await get_slave_ip_list("10.11.43.96", self.loggerMock)
-            m.get(
-                f'http://{slave_ips[0]}/monitor/statistics.json',
-                payload=slave_statistics_response_mock_multiple_tasks)
-            slave_statistics = await get_slave_statistics(
-                slave_ips[0], self.loggerMock)
-            queue = asynctest.mock.CoroutineMock(
-                put=asynctest.mock.CoroutineMock(),
-                connect=asynctest.mock.CoroutineMock())
+        slave_statistics = [{"taskname": "/infra/task"}, {"taskname": "/infra/othertask"}]
+        queue = asynctest.mock.CoroutineMock(
+            put=asynctest.mock.CoroutineMock(),
+            connect=asynctest.mock.CoroutineMock())
         await send_slave_statistics_to_queue(slave_statistics, queue,
                                              self.loggerMock)
         self.assertEqual([
@@ -205,3 +177,4 @@ class FecthMasterTest(asynctest.TestCase):
                 body=slave_statistics[1],
                 routing_key=conf.STATS_COLLECTOR_RABBITMQ_RK)
         ], queue.put.await_args_list)
+
