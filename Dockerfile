@@ -10,6 +10,8 @@ RUN pip install -U pip \
 
 COPY . /opt/app
 
-RUN pipenv install --system --deploy --ignore-pipfile
+RUN apk -U add --virtual .deps gcc g++ make python-dev \
+&& pipenv install --system --deploy --ignore-pipfile \
+&& apk del --purge .deps
 
 CMD ["python", "-m", "status_collector"]
