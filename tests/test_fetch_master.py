@@ -132,8 +132,8 @@ class FecthMasterTest(asynctest.TestCase):
     async def test_get_slaves_ips_list(self):
         with aioresponses() as m:
             m.get('http://10.11.43.96:5050/slaves', payload=slaves)
-            slave_ips = await get_slave_ip_list("10.11.43.96")
-        self.assertEquals(
+            slave_ips = await get_slave_ip_list("10.11.43.96", self.loggerMock)
+        self.assertEqual(
             slave_ips,
             ["10.0.111.32:5051", "10.0.111.33:5051", "10.0.111.34:5051"])
 
@@ -146,19 +146,26 @@ class FecthMasterTest(asynctest.TestCase):
                 slave_statistics = await get_slave_statistics(
                     "10.0.111.32:5051", self.loggerMock)
 
-    async def test_master_dont_exists(self):
+    async def test_reraises_exception_if_error_on_fetch_slaves_ip_list(self):
         with aioresponses() as m:
+            m.get( 'http://10.0.1.1:5050/slaves', exception=Exception("Error fetching Slaves IP list 10.0.1.1:5051."))
             with self.assertRaises(Exception):
-                m.get(
-                    'http://10.0.1.1:5051/monitor/statistics.json',
-                    exception=Exception("Invalid master ip 10.0.1.1:5051."))
-                slave_statistics = await get_slave_ip_list(
-                    "10.0.1.1:5051")
+                slave_statistics = await get_slave_ip_list("10.0.1.1", self.loggerMock)
+
+            self.loggerMock.exception.assert_awaited_with({
+                "action": "get_slave_ip_list",
+                "exception": {
+                    "message": "Error fetching Slaves IP list 10.0.1.1:5051.",
+                    "traceback": mock.ANY,
+                    "type": "Exception",
+                },
+                "master_ip": "10.0.1.1"
+            })
 
     async def test_putting_slave_statistics_on_rabbitMQ(self):
         with aioresponses() as m:
             m.get('http://10.11.43.96:5050/slaves', payload=slaves)
-            slave_ips = await get_slave_ip_list("10.11.43.96")
+            slave_ips = await get_slave_ip_list("10.11.43.96", self.loggerMock)
             m.get(
                 f'http://{slave_ips[0]}/monitor/statistics.json',
                 payload=slave_statistics_response_mock)
@@ -169,7 +176,7 @@ class FecthMasterTest(asynctest.TestCase):
                 connect=asynctest.mock.CoroutineMock())
             await send_slave_statistics_to_queue(slave_statistics, queue,
                                                  self.loggerMock)
-        self.assertEquals([
+        self.assertEqual([
             asynctest.mock.call(
                 body=slave_statistics[0],
                 routing_key=conf.STATS_COLLECTOR_RABBITMQ_RK)
@@ -179,7 +186,7 @@ class FecthMasterTest(asynctest.TestCase):
         self.maxDiff = None
         with aioresponses() as m:
             m.get('http://10.11.43.96:5050/slaves', payload=slaves)
-            slave_ips = await get_slave_ip_list("10.11.43.96")
+            slave_ips = await get_slave_ip_list("10.11.43.96", self.loggerMock)
             m.get(
                 f'http://{slave_ips[0]}/monitor/statistics.json',
                 payload=slave_statistics_response_mock_multiple_tasks)
@@ -190,7 +197,7 @@ class FecthMasterTest(asynctest.TestCase):
                 connect=asynctest.mock.CoroutineMock())
         await send_slave_statistics_to_queue(slave_statistics, queue,
                                              self.loggerMock)
-        self.assertEquals([
+        self.assertEqual([
             asynctest.mock.call(
                 body=slave_statistics[0],
                 routing_key=conf.STATS_COLLECTOR_RABBITMQ_RK),

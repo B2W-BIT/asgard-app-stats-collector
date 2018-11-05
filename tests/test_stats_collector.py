@@ -7,6 +7,9 @@ import aioredis
 from aioresponses import aioresponses
 from aiologger.loggers.json import JsonLogger
 
+import aiohttp
+
+
 from status_collector import build_statistic_for_response, conf, get_slave_statistics
 
 @pytest.mark.usefixtures("monitor_statistics_one_task")
@@ -98,4 +101,21 @@ class StatsCollectorTest(asynctest.TestCase):
                 **self.multuple_reads_monitor_statistics_cfs_off['expected_result']
             }
             self.assertDictEqual(expected_results, calculated_metrics)
+
+    async def test_logs_traceback_if_slave_fetch_fails(self):
+        slave_ip = "10.0.1.1:5051"
+        with aioresponses() as resp:
+            resp.get(f"http://{slave_ip}/monitor/statistics.json", exception=aiohttp.client_exceptions.ClientConnectionError(f"Error connecting to {slave_ip}"))
+            with self.assertRaises(Exception):
+                expected_result = await get_slave_statistics("10.0.1.1:5051", self.logger)
+
+            self.logger.exception.assert_awaited_with({
+                "action": "get_slave_statistics",
+                "slave_ip": slave_ip,
+                "exception": {
+                    "message": "Error connecting to 10.0.1.1:5051",
+                    "type": "ClientConnectionError",
+                    "traceback": mock.ANY
+                }
+            })
 

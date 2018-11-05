@@ -1,3 +1,5 @@
+import traceback
+import sys
 import json
 from decimal import Decimal
 import decimal
@@ -26,17 +28,25 @@ async def main():
     await fetch_app_stats(queue, logger)
 
 
-async def get_slave_ip_list(master_ip):
+async def get_slave_ip_list(master_ip, logger):
     try:
         session = aiohttp.ClientSession()
         resp = await session.get(f'http://{master_ip}:5050/slaves', timeout=timeout_config)
         data = await resp.json()
         await session.close()
         return list(map(lambda slave: f'{slave["hostname"]}:{slave["port"]}', data["slaves"]))
-    except Exception:
+    except Exception as e:
         await session.close()
-        raise Exception(f"Invalid master ip {master_ip}.")
-
+        await logger.exception({
+            "action": "get_slave_ip_list",
+            "exception": {
+                "message": str(e),
+                "traceback": traceback.format_exc(),
+                "type": sys.exc_info()[0].__name__,
+            },
+            "master_ip": master_ip
+        })
+        raise e
 
 def extract_app_name(task):
     return "/" + task["executor_id"].split('.')[0].replace("_", "/")
@@ -128,7 +138,16 @@ async def get_slave_statistics(slave_ip, logger):
         return [item for item in await asyncio.gather(*async_tasks, return_exceptions=True) if item]
     except Exception as e:
         await session.close()
-        raise Exception(f"Invalid slave ip {slave_ip}. {e}")
+        await logger.exception({
+            "action": "get_slave_statistics",
+            "exception": {
+                "message": str(e),
+                "traceback": traceback.format_exc(),
+                "type": sys.exc_info()[0].__name__,
+            },
+            "slave_ip": slave_ip
+        })
+        raise e
 
 
 async def send_slave_statistics_to_queue(slave_statistics, queue, logger):
@@ -157,7 +176,7 @@ async def async_tasks(ip, logger, queue):
 
 async def fetch_app_stats(queue, logger):
     start = time.time()
-    ip_list = await get_slave_ip_list(conf.STATS_COLLECTOR_MESOS_MASTER_IP)
+    ip_list = await get_slave_ip_list(conf.STATS_COLLECTOR_MESOS_MASTER_IP, logger)
     await logger.debug({"totalSlaves": len(ip_list), "slaveList": ip_list})
     try:
         tasks = [async_tasks(ip, logger, queue) for ip in ip_list]
