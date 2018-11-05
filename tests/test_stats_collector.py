@@ -20,6 +20,7 @@ import status_collector
 class StatsCollectorTest(asynctest.TestCase):
 
     def setUp(self):
+        self.maxDiff = None
         self.logger = asynctest.Mock(spec=JsonLogger)
 
     async def test_remove_empty_stats_from_final_list(self):
@@ -85,7 +86,6 @@ class StatsCollectorTest(asynctest.TestCase):
         Devemos ser capazes de de calcular pelo menos as métricas de memória
         para task que estão rodando em agentes sem o CFS enabled.
         """
-        self.maxDiff = None
         task_info_now = self.multuple_reads_monitor_statistics_cfs_off['now']
         task_info_before = self.multuple_reads_monitor_statistics_cfs_off['before']
 

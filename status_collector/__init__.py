@@ -83,8 +83,11 @@ async def build_statistic_for_response(slave_ip, task_now):
     cpu_usr_secs = Decimal(now_stats['cpus_user_time_secs']) - Decimal(before_stats['cpus_user_time_secs'])
     cpu_sys_secs = Decimal(now_stats['cpus_system_time_secs']) - Decimal(before_stats['cpus_system_time_secs'])
 
-    cpu_usr_host_pct = cpu_usr_secs / period_secs * 100
-    cpu_sys_host_pct = cpu_sys_secs / period_secs * 100
+    cpu_usr_host = cpu_usr_secs / period_secs
+    cpu_sys_host = cpu_sys_secs / period_secs
+
+    cpu_usr_host_pct = cpu_usr_host * 100
+    cpu_sys_host_pct = cpu_sys_host * 100
 
     mem_bytes = now_stats['mem_rss_bytes']
     mem_pct = Decimal(now_stats['mem_rss_bytes']) / Decimal(now_stats['mem_limit_bytes']) * 100
@@ -92,7 +95,8 @@ async def build_statistic_for_response(slave_ip, task_now):
     cpu_usr_pct = cpu_usr_host_pct / cpu_limit
     cpu_sys_pct = cpu_sys_host_pct / cpu_limit
     cpu_thr_pct = cpu_thr_secs / period_secs * 100
-    cpu_pct = (Decimal(cpu_usr_secs) + Decimal(cpu_sys_secs)) / Decimal(cpu_limit) * 100
+    cpu_pct = (Decimal(cpu_usr_host) + Decimal(cpu_sys_host)) / Decimal(cpu_limit) * 100
+    cpu_host_pct = cpu_usr_host_pct + cpu_sys_host_pct
 
     data = {
         "stats": {
@@ -114,8 +118,9 @@ async def build_statistic_for_response(slave_ip, task_now):
         "cpu_usr_host_pct": round_up(cpu_usr_host_pct),
         "cpu_usr_pct": round_up(cpu_usr_pct),
         "cpu_sys_pct": round_up(cpu_sys_pct),
+        "cpu_thr_pct": round_up(cpu_thr_pct),
         "cpu_pct": round_up(cpu_pct),
-        "cpu_thr_pct": round_up(cpu_thr_pct)
+        "cpu_host_pct": round_up(cpu_host_pct)
     }
 
     # Para podermos diferencias tasks que não possuem os dados
