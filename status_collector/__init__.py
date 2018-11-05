@@ -128,31 +128,11 @@ async def build_statistic_for_response(slave_ip, task_now):
 
 async def get_slave_statistics(slave_ip, logger):
     try:
-        session = aiohttp.ClientSession()
-        resp = await session.get(f'http://{slave_ip}/monitor/statistics.json', timeout=timeout_config)
-        tasks = await resp.json()
-        await session.close()
-        async_tasks = [build_statistic_for_response(slave_ip, task) for task in tasks]
-
-        results = await asyncio.gather(*async_tasks, return_exceptions=True)
-        valid_results = []
-        for r in results:
-            if r and not isinstance(r, Exception):
-                valid_results.append(r)
-            if isinstance(r, Exception):
-                await logger.exception({
-                    "action": "build_slave_stask_statistics",
-                    "exception": {
-                        "message": str(r),
-                        "traceback": traceback.format_tb(r.__traceback__),
-                        "type": r.__class__.__name__,
-                    },
-                    "slave_ip": slave_ip
-                })
-
-        return valid_results
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'http://{slave_ip}/monitor/statistics.json', timeout=timeout_config) as resp:
+                tasks = await resp.json()
+                async_tasks = [build_statistic_for_response(slave_ip, task) for task in tasks]
     except Exception as e:
-        await session.close()
         await logger.exception({
             "action": "get_slave_statistics",
             "exception": {
@@ -163,6 +143,24 @@ async def get_slave_statistics(slave_ip, logger):
             "slave_ip": slave_ip
         })
         raise e
+
+    results = await asyncio.gather(*async_tasks, return_exceptions=True)
+    valid_results = []
+    for r in results:
+        if r and not isinstance(r, Exception):
+            valid_results.append(r)
+        if isinstance(r, Exception):
+            await logger.exception({
+                "action": "build_slave_stask_statistics",
+                "exception": {
+                    "message": str(r),
+                    "traceback": traceback.format_tb(r.__traceback__),
+                    "type": r.__class__.__name__,
+                },
+                "slave_ip": slave_ip
+            })
+
+    return valid_results
 
 
 async def send_slave_statistics_to_queue(slave_statistics, queue, logger):
