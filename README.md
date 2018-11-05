@@ -45,6 +45,4 @@ HOLLOWMAN_MESOS_ADDRESS_2: http://IP3:PORTA3
 
 * Escrever mais testes, aumentar a cobertura de testes.
 * Tratar melhor casos de errot (ConnectionError, ConnectionTimeout, etc)
-* Refatorar o código que monta os documentos com estatísticas de uma slave, remover código duplicado
-* Buscar os dados dos slaves com código concorrente. Atualmente o código vai em um slave de cada vez.
 
