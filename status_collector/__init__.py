@@ -176,14 +176,15 @@ async def async_tasks(ip, logger, queue):
         statistics = await get_slave_statistics(ip, logger)
         end = time.time()
         elapsed = end - start
-        await logger.info({
-                    "action": "fetch_slave_statistics",
-                    "slaveIp": ip,
-                    "totalTasks": len(statistics),
-                    "processTime": elapsed
-                })
+        if statistics:
+            await logger.info({
+                        "action": "fetch_slave_statistics",
+                        "slaveIp": ip,
+                        "totalTasks": len(statistics),
+                        "processTime": elapsed
+                    })
 
-        await send_slave_statistics_to_queue(statistics, queue, logger)
+            await send_slave_statistics_to_queue(statistics, queue, logger)
     except Exception as e:
         await logger.exception(e)
 
