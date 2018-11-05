@@ -75,7 +75,8 @@ def multiple_reads_monitor_statistics(request):
       "cpu_usr_pct" : 104.53893,
       "cpu_sys_host_pct" : 0.0,
       "cpu_thr_pct" : 29.84021,
-      "mem_pct" : 0.0586
+      "mem_pct" : 0.0586,
+      "timestamp" : 1541084157.12885
    }
 }
 
@@ -98,6 +99,7 @@ def multiple_reads_monitor_statistics_cfs_off(request):
       "executor_id" : "infra_stress.0741cf07-dde6-11e8-a6bb-0242ac120020"
    },
    "expected_result" : {
+      "timestamp" : 1541094416.35744,
       "cpu_usr_host_pct" : 0.79138,
       "cpu_pct" : 3.33334,
       "appname" : "/infra/stress",

@@ -99,6 +99,7 @@ async def build_statistic_for_response(slave_ip, task_now):
             "before": task_before['statistics'],
             "now": task_now['statistics']
         },
+        "timestamp": now_stats['timestamp'],
         "cpu_limit": round_up(cpu_limit, prec=1),
         "host": slave_ip,
         "taskname": taskname,
