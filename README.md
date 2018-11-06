@@ -25,6 +25,7 @@ STATS_COLLECTOR_MESOS_MASTER_IP: IP do meso Master (sem incluir a porta)
 STATS_COLLECTOR_REDIS_URL: Url completa para o redis
 STATS_COLLECTOR_REDIS_POOL_MIN: Tamanho inicial do pool de coexões com o redis
 STATS_COLLECTOR_REDIS_POOL_MAX: Tamanho máximo do pool de conexões com o redis
+STATS_COLLECTOR_INCLUDE_RAW_METRICS: [0|1] Default: 0. Indica de os valores brutos, usados nos cálculos também serão incluídos no documento final.
 ```
 
 ## Trabalhos futuros
