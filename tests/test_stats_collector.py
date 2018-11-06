@@ -17,6 +17,7 @@ import status_collector
 @pytest.mark.usefixtures("multiple_reads_monitor_statistics")
 @pytest.mark.usefixtures("multiple_reads_monitor_statistics_cfs_off")
 @pytest.mark.usefixtures("slave_statistics_multiple_tasks")
+@pytest.mark.usefixtures("cpu_limit_valor_com_arredondamento_incorreto")
 class StatsCollectorTest(asynctest.TestCase):
 
     def setUp(self):
@@ -142,4 +143,28 @@ class StatsCollectorTest(asynctest.TestCase):
                     "traceback": mock.ANY
                 }
             })
+
+    async def test_decimal_com_arredondamento_correto(self):
+        """
+        Precisamos ter certeza que problemas com representação do float não vão atrapalhar.
+        Esse teste confirma que mesmo que o dado original seja um float(0.9), a leitura desse
+        valor com Decimal(0.9), quando arredondado pra cima nmão vira Decimal(1).
+
+        In [13]: Decimal(0.9).quantize(Decimal(".0"), rounding=decimal.ROUND_UP)
+        Out[13]: Decimal('1.0')
+
+        In [14]: Decimal("0.9").quantize(Decimal(".0"), rounding=decimal.ROUND_UP)
+        Out[14]: Decimal('0.9')
+        """
+        task_info_now = self.cpu_limit_valor_com_arredondamento_incorreto['now']
+        task_info_before = self.cpu_limit_valor_com_arredondamento_incorreto['before']
+
+        with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
+            redis_mock.get.return_value = json.dumps(task_info_before)
+            calculated_metrics = await build_statistic_for_response("10.168.200.55", task_info_now)
+            redis_mock.get.assert_awaited_with(task_info_now['executor_id'])
+            redis_mock.set.assert_awaited_with(task_info_now['executor_id'], json.dumps(task_info_now))
+
+            self.assertEqual(0.8, calculated_metrics["cpu_limit"])
+            self.assertEqual(0.9, calculated_metrics["cpu_limit_raw"])
 
