@@ -100,10 +100,6 @@ async def build_statistic_for_response(slave_ip, task_now):
     cpu_host_pct = cpu_usr_host_pct + cpu_sys_host_pct
 
     data = {
-        "stats": {
-            "before": task_before['statistics'],
-            "now": task_now['statistics']
-        },
         "timestamp": now_stats['timestamp'],
         "cpu_limit": round_up(cpu_limit, prec=1),
         "cpu_limit_raw": round_up(cpu_limit_raw, prec=1),
@@ -130,6 +126,12 @@ async def build_statistic_for_response(slave_ip, task_now):
     if "cpus_throttled_time_secs" not in now_stats:
         del data["cpu_thr_secs"]
         del data["cpu_thr_pct"]
+
+    if conf.STATS_COLLECTOR_INCLUDE_RAW_METRICS:
+        data["stats"] = {
+            "before": task_before['statistics'],
+            "now": task_now['statistics']
+        }
 
     return data
 

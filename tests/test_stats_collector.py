@@ -67,7 +67,8 @@ class StatsCollectorTest(asynctest.TestCase):
         task_info_now = self.multuple_reads_monitor_statistics['now']
         task_info_before = self.multuple_reads_monitor_statistics['before']
 
-        with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
+        with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock, \
+                mock.patch.multiple(conf, STATS_COLLECTOR_INCLUDE_RAW_METRICS=True):
             redis_mock.get.return_value = json.dumps(task_info_before)
             calculated_metrics = await build_statistic_for_response("10.168.200.55", task_info_now)
             redis_mock.get.assert_awaited_with(task_info_now['executor_id'])
@@ -90,7 +91,8 @@ class StatsCollectorTest(asynctest.TestCase):
         task_info_now = self.multuple_reads_monitor_statistics_cfs_off['now']
         task_info_before = self.multuple_reads_monitor_statistics_cfs_off['before']
 
-        with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
+        with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock, \
+                mock.patch.multiple(conf, STATS_COLLECTOR_INCLUDE_RAW_METRICS=True):
             redis_mock.get.return_value = json.dumps(task_info_before)
             calculated_metrics = await build_statistic_for_response("10.168.200.55", task_info_now)
             redis_mock.get.assert_awaited_with(task_info_now['executor_id'])
@@ -101,6 +103,24 @@ class StatsCollectorTest(asynctest.TestCase):
                     "before": task_info_before['statistics'],
                     "now": task_info_now['statistics']
                 },
+                **self.multuple_reads_monitor_statistics_cfs_off['expected_result']
+            }
+            self.assertDictEqual(expected_results, calculated_metrics)
+
+    async def test_include_raw_values_if_env_is_true(self):
+        """
+        Por padrão, não incluímos os dados brutos na indexação final.
+        """
+        task_info_now = self.multuple_reads_monitor_statistics_cfs_off['now']
+        task_info_before = self.multuple_reads_monitor_statistics_cfs_off['before']
+
+        with mock.patch.object(conf, 'cache', CoroutineMock(get=CoroutineMock(), set=CoroutineMock()), create=True) as redis_mock:
+            redis_mock.get.return_value = json.dumps(task_info_before)
+            calculated_metrics = await build_statistic_for_response("10.168.200.55", task_info_now)
+            redis_mock.get.assert_awaited_with(task_info_now['executor_id'])
+            redis_mock.set.assert_awaited_with(task_info_now['executor_id'], json.dumps(task_info_now))
+
+            expected_results = {
                 **self.multuple_reads_monitor_statistics_cfs_off['expected_result']
             }
             self.assertDictEqual(expected_results, calculated_metrics)

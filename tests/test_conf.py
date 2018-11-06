@@ -40,3 +40,17 @@ class ConfTest(asynctest.TestCase):
         with mock.patch.dict(os.environ, STATS_COLLECTOR_MESOS_MASTER_IP=expected_mesos_master_ip):
             reload(conf)
             self.assertEqual(expected_mesos_master_ip, conf.STATS_COLLECTOR_MESOS_MASTER_IP)
+
+    def test_read_raw_metrics_configs(self):
+        reload(conf)
+        self.assertFalse(conf.STATS_COLLECTOR_INCLUDE_RAW_METRICS)
+
+        with mock.patch.dict(os.environ, STATS_COLLECTOR_INCLUDE_RAW_METRICS="1"):
+            reload(conf)
+            self.assertTrue(conf.STATS_COLLECTOR_INCLUDE_RAW_METRICS)
+
+        with mock.patch.dict(os.environ, STATS_COLLECTOR_INCLUDE_RAW_METRICS="0"):
+            reload(conf)
+            self.assertFalse(conf.STATS_COLLECTOR_INCLUDE_RAW_METRICS)
+
+
