@@ -77,7 +77,8 @@ async def build_statistic_for_response(slave_ip, task_now):
     await conf.cache.set(taskname, json.dumps(task_now))
 
     period_secs = Decimal(now_stats['timestamp'] - before_stats['timestamp'])
-    cpu_limit = Decimal(now_stats['cpus_limit'])
+    cpu_limit_raw = Decimal(str(now_stats['cpus_limit']))
+    cpu_limit = cpu_limit_raw - Decimal("0.1")
 
     cpu_thr_secs = Decimal(now_stats.get('cpus_throttled_time_secs', 0)) - Decimal(before_stats.get('cpus_throttled_time_secs', 0))
     cpu_usr_secs = Decimal(now_stats['cpus_user_time_secs']) - Decimal(before_stats['cpus_user_time_secs'])
@@ -105,6 +106,7 @@ async def build_statistic_for_response(slave_ip, task_now):
         },
         "timestamp": now_stats['timestamp'],
         "cpu_limit": round_up(cpu_limit, prec=1),
+        "cpu_limit_raw": round_up(cpu_limit_raw, prec=1),
         "host": slave_ip,
         "taskname": taskname,
         "appname": appname,
