@@ -49,7 +49,8 @@ async def get_slave_ip_list(master_ip, logger):
         raise e
 
 def extract_app_name(task):
-    return "/" + task["executor_id"].split('.')[0].replace("_", "/")
+    app_name_with_namespace = task["executor_id"].rsplit(".", 1)[0]
+    return "/" + app_name_with_namespace.replace("_", "/")
 
 
 def extract_task_name(task):

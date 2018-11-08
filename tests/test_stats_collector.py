@@ -10,7 +10,7 @@ from aiologger.loggers.json import JsonLogger
 import aiohttp
 
 
-from status_collector import build_statistic_for_response, conf, get_slave_statistics
+from status_collector import build_statistic_for_response, conf, get_slave_statistics, extract_app_name
 import status_collector
 
 @pytest.mark.usefixtures("monitor_statistics_one_task")
@@ -23,6 +23,12 @@ class StatsCollectorTest(asynctest.TestCase):
     def setUp(self):
         self.maxDiff = None
         self.logger = asynctest.Mock(spec=JsonLogger)
+
+    async def test_extract_app_name(self):
+        self.assertEqual("/afiliados/infra/reverse-proxy/certbot-public-afiliados.com.br",
+                         extract_app_name({"executor_id": "afiliados_infra_reverse-proxy_certbot-public-afiliados.com.br.8f91eac8-e2b6-11e8-ad9b-de0cd2503c7d"}))
+        self.assertEqual("/afiliados/infra/reverse-proxy/certbot-public",
+                         extract_app_name({"executor_id": "afiliados_infra_reverse-proxy_certbot-public.8f91eac8-e2b6-11e8-ad9b-de0cd2503c7d"}))
 
     async def test_remove_empty_stats_from_final_list(self):
         """
