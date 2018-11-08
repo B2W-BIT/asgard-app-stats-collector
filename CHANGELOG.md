@@ -1,6 +1,9 @@
 # Changelog
 
 
+## 0.2.1
+ * Fix na extração do nome da app a partir do nome da task;
+
 ## 0.2.0
 
  * Mudança no nome de todas as envs, trocando o prefixo `STATUS` por `STATS`;
