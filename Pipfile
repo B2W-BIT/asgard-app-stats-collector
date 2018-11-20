@@ -4,7 +4,6 @@ url = "https://pypi.org/simple"
 name = "pypi"
 
 [packages]
-async-worker = "==0.2.0rc1"
 pytest = "*"
 aiohttp = "==3.3.2"
 aiologger = "==0.1.1-rc2"

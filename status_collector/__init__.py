@@ -7,9 +7,8 @@ import asyncio
 import aiohttp
 import aioredis
 from aiohttp import ClientTimeout
-from easyqueue.async import AsyncQueue, AsyncQueueConsumerDelegate
+from easyqueue import AsyncQueue, AsyncQueueConsumerDelegate
 from status_collector import conf
-from asyncworker import App
 import time
 from aiologger.loggers.json import JsonLogger
 
