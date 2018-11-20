@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3b94709981384aab7daec244747b08084481205fe9795d404cde0728c4e757d2"
+            "sha256": "f0a1a7f05da0c90668ecbc5563701034f525d25055d2053f1a138d2f960d0525"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "aioamqp": {
+            "hashes": [
+                "sha256:7f1eb9e0f1b7c7e21a3a6ca498c3daafdfc3e95b4a1a0633fd8d6ba2dfcab777",
+                "sha256:abfdf3285e129a72c653fab6cff9a6e9132e9e1f755c073821b553bbc72e73c4"
+            ],
+            "version": "==0.11.0"
+        },
         "aiohttp": {
             "hashes": [
                 "sha256:1a112a1fdf3802b7f2b182e22e51d71e4a8fa7387d0d38e79a268921b869e384",
@@ -79,6 +86,13 @@
                 "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"
             ],
             "version": "==3.0.4"
+        },
+        "easyqueue": {
+            "hashes": [
+                "sha256:b1000ad8e9baeb1d3efe16ccbb180e3705e24d2ac1bc2b57134fe1fb510ac3af"
+            ],
+            "index": "pypi",
+            "version": "==1.2.1rc1"
         },
         "hiredis": {
             "hashes": [
@@ -352,10 +366,10 @@
         },
         "easyqueue": {
             "hashes": [
-                "sha256:0b80d79cf5e957fd33a04a8ab487b1953edd2943c35b304ab3e2877af12e4218"
+                "sha256:b1000ad8e9baeb1d3efe16ccbb180e3705e24d2ac1bc2b57134fe1fb510ac3af"
             ],
             "index": "pypi",
-            "version": "==1.1.0"
+            "version": "==1.2.1rc1"
         },
         "idna": {
             "hashes": [
