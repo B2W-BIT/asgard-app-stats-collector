@@ -4,11 +4,11 @@ url = "https://pypi.org/simple"
 name = "pypi"
 
 [packages]
-async-worker = "==0.2.0rc1"
 pytest = "*"
 aiohttp = "==3.3.2"
 aiologger = "==0.1.1-rc2"
 aioredis = "==1.2.0"
+easyqueue = "==1.2.1-rc1"
 
 [requires]
 python_version = "3.6"
