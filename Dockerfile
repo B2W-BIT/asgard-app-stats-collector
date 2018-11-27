@@ -1,7 +1,7 @@
 FROM python:3.6.5-alpine
 
 #Tag: sieve/infra/asgard-app-stats-collector
-#Version: 0.3.0-rc1
+#Version: 0.3.0
 
 WORKDIR /opt/app
 
