@@ -1,6 +1,9 @@
 # Changelog
 
 
+## 0.3.0
+ * Atualizando dependencias;
+
 ## 0.2.1
  * Fix na extração do nome da app a partir do nome da task;
 
