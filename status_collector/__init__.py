@@ -12,7 +12,7 @@ from status_collector import conf
 import time
 from aiologger.loggers.json import JsonLogger
 
-timeout_config = ClientTimeout(connect=2, total=5)
+timeout_config = ClientTimeout(connect=conf.STATS_CONNECT_TIMEOUT, total=STATS_REQUEST_TIMEOUT)
 
 
 async def main():

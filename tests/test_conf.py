@@ -53,4 +53,12 @@ class ConfTest(asynctest.TestCase):
             reload(conf)
             self.assertFalse(conf.STATS_COLLECTOR_INCLUDE_RAW_METRICS)
 
+    def test_read_connection_timeout_settings(self):
 
+        with mock.patch.dict(os.environ,
+                    STATS_CONNECT_TIMEOUT="5",
+                    STATS_REQUEST_TIMEOUT="30",
+                             ):
+            reload(conf)
+            self.assertEqual(5, conf.STATS_CONNECT_TIMEOUT)
+            self.assertEqual(30, conf.STATS_REQUEST_TIMEOUT)

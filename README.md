@@ -26,6 +26,8 @@ STATS_COLLECTOR_REDIS_URL: Url completa para o redis
 STATS_COLLECTOR_REDIS_POOL_MIN: Tamanho inicial do pool de coexões com o redis
 STATS_COLLECTOR_REDIS_POOL_MAX: Tamanho máximo do pool de conexões com o redis
 STATS_COLLECTOR_INCLUDE_RAW_METRICS: [0|1] Default: 0. Indica de os valores brutos, usados nos cálculos também serão incluídos no documento final.
+STATS_CONNECT_TIMEOUT: Default: 2s Timeout em segundos para as conexões HTTP
+STATS_REQUEST_TIMEOUT: Default: 5s Timeout em segundos para os requests HTTP (completos, incluindo tempo para receber a response)
 ```
 
 ## Trabalhos futuros
