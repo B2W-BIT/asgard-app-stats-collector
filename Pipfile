@@ -4,21 +4,19 @@ url = "https://pypi.org/simple"
 name = "pypi"
 
 [packages]
-pytest = "*"
 aiohttp = "==3.3.2"
-aiologger = "==0.1.1-rc2"
+aiologger = "==0.5.0"
 aioredis = "==1.2.0"
 easyqueue = "==1.2.1-rc1"
 
 [requires]
-python_version = "3.6"
+python_version = "3.7"
 
 [dev-packages]
-pytest = "*"
+pytest = "==5.3.5"
 pytest-coverage = "*"
-asynctest = "==0.12.2"
+asynctest = "==0.12.1"
 aioresponses = "*"
 yapf = "*"
-easyqueue = "*"
 ipdb = "*"
 codecov = "*"
