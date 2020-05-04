@@ -1,6 +1,9 @@
 # Changelog
 
 
+## 0.5.0
+ * Atualizado aiologger pra 0.5.0
+
 ## 0.3.0
  * Atualizando dependencias;
 
