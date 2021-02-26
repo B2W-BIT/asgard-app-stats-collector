@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 name = "pypi"
 
 [packages]
-aiohttp = "==3.3.2"
+aiohttp = "==3.7.4"
 aiologger = "==0.5.0"
 aioredis = "==1.2.0"
 easyqueue = "==1.2.1-rc1"
